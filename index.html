@@ -1,306 +1,479 @@
 <!doctype html>
-<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>FAB 테스트 Lot 이상 점검 보고서</title>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Junction Temp 모니터 · Gpoly 이상 선감지</title>
 <style>
-:root{--bg:#F6F8FA;--card:#fff;--ink:#16202B;--ink2:#4A5866;--mute:#7B8794;--line:#E3E8EE;--grid:#E9EDF2;--bad:#D9480F;--badbg:#FFF1EA;--gray:#8A94A0;--blue:#1C6EA4;--bluebg:#EAF3FA;--ok:#2B8A57;--okbg:#E6F4EC;--warn:#A86400;--warnbg:#FFF4D6;--crit:#C21F1F;--critbg:#FDE8E8}
-@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0F141A;--card:#171E26;--ink:#E8EDF2;--ink2:#B3BEC9;--mute:#8793A0;--line:#27313C;--grid:#252E38;--bad:#FF8A4C;--badbg:#2B1D16;--gray:#7E8995;--blue:#5AA9E6;--bluebg:#162634;--ok:#4CC38A;--okbg:#14291E;--warn:#E3B341;--warnbg:#2D2412;--crit:#FF7A7A;--critbg:#321818}}
-:root[data-theme=dark]{--bg:#0F141A;--card:#171E26;--ink:#E8EDF2;--ink2:#B3BEC9;--mute:#8793A0;--line:#27313C;--grid:#252E38;--bad:#FF8A4C;--badbg:#2B1D16;--gray:#7E8995;--blue:#5AA9E6;--bluebg:#162634;--ok:#4CC38A;--okbg:#14291E;--warn:#E3B341;--warnbg:#2D2412;--crit:#FF7A7A;--critbg:#321818}
-.st{display:inline-block;white-space:nowrap;font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;margin-top:8px}
-.st.ok{background:var(--okbg);color:var(--ok)}.st.warn{background:var(--warnbg);color:var(--warn)}.st.crit{background:var(--critbg);color:var(--crit)}
-.legend i.dash{background:none;border-top:2px dashed var(--c);height:0;width:16px}
-.legend i.band{height:10px;width:14px;background:var(--okbg);border:1px solid var(--ok)}
-.tag.w{background:var(--warnbg);color:var(--warn)}
-.crit-t td:nth-child(1){font-weight:700;white-space:nowrap}.crit-t td{vertical-align:top;font-size:13.5px}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.65 "Malgun Gothic","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif}
-.layout{max-width:1380px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:24px;align-items:start;padding:0 16px}
-.wrap{min-width:0;padding:32px 0 64px}
-.chat{position:sticky;top:16px;height:calc(100vh - 32px);margin:16px 0;background:var(--card);border:1px solid var(--line);border-radius:14px;display:flex;flex-direction:column;overflow:hidden}
-.chat-h{padding:14px 16px 10px;border-bottom:1px solid var(--line)}.chat-h b{font-size:15px}.chat-h small{display:block;color:var(--mute);font-size:12px}
-.chat details{border-bottom:1px solid var(--line);padding:8px 16px;font-size:13px}.chat summary{cursor:pointer;color:var(--ink2);font-weight:600}
-.chat label{display:block;margin:8px 0 2px;color:var(--mute);font-size:12px}
-.chat input,.chat textarea{width:100%;font:inherit;font-size:13px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 9px}
-.chat input:focus,.chat textarea:focus{outline:2px solid var(--blue);outline-offset:-1px}
-.chat .note{font-size:11.5px;color:var(--mute);margin:6px 0 2px}
-#msgs{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
-.m{max-width:92%;padding:9px 12px;border-radius:12px;font-size:13.5px;line-height:1.55;white-space:pre-wrap;word-break:break-word}
-.m.u{align-self:flex-end;background:var(--blue);color:#fff;border-bottom-right-radius:4px}
-.m.a{align-self:flex-start;background:var(--bg);border:1px solid var(--line);border-bottom-left-radius:4px}
-.m.e{align-self:flex-start;background:var(--badbg);border:1px solid var(--bad);color:var(--ink)}
-.chips{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 8px}
-.chips button{font:inherit;font-size:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink2);border-radius:999px;padding:4px 10px;cursor:pointer}
-.chips button:hover{border-color:var(--blue);color:var(--blue)}
-.chat form{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--line)}
-.chat form textarea{resize:none;height:42px}
-.chat form button{white-space:nowrap;border:0;background:var(--blue);color:#fff;border-radius:8px;padding:0 14px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
-.chat form button:disabled{opacity:.5;cursor:default}
-@media(max-width:1100px){.layout{grid-template-columns:minmax(0,1fr)}.chat{position:static;height:600px;margin:0 0 40px}}
-header{margin-bottom:24px}.eyebrow{color:var(--mute);font-size:13px}h1{font-size:28px;margin:4px 0 6px;letter-spacing:-.02em}
-.sub{color:var(--ink2);font-size:14px}
-h2{font-size:20px;margin:40px 0 12px;letter-spacing:-.01em}
-.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:12px;margin:20px 0}
-.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
-.kpi .l{font-size:13px;color:var(--mute)}.kpi .v{font-size:20px;white-space:nowrap;font-weight:700;margin:2px 0;letter-spacing:-.02em}
-.kpi .d{font-size:13px;color:var(--ink2)}.kpi.bad{border-color:var(--bad);background:var(--badbg)}.kpi.bad .v{color:var(--bad)}
-.kpi.ok .v{color:var(--ok)}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 18px 12px;margin:14px 0}
-.card h3{margin:0 0 2px;font-size:16px}.card .cap{font-size:13px;color:var(--ink2);margin:0 0 8px}
-.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--ink2);margin:4px 0 6px}
-.legend i{display:inline-block;width:14px;height:4px;border-radius:2px;margin-right:6px;vertical-align:middle}
-.legend i.sq{height:10px;width:10px;border-radius:2px}
-svg{width:100%;height:auto;display:block;overflow:visible}svg text{fill:var(--mute);font-size:11px;font-family:inherit}
-.tip{position:fixed;pointer-events:none;background:var(--card);border:1px solid var(--line);box-shadow:0 6px 20px rgba(0,0,0,.18);border-radius:8px;padding:8px 10px;font-size:12.5px;display:none;z-index:9;color:var(--ink);min-width:140px}
-.tip b{display:block;margin-bottom:3px}.tip span.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
-.callout{border-left:4px solid var(--bad);background:var(--badbg);padding:12px 16px;border-radius:0 10px 10px 0;margin:14px 0}
-.callout.info{border-color:var(--blue);background:var(--bluebg)}
-table{width:100%;border-collapse:collapse;font-size:14px;margin:8px 0}th,td{padding:9px 12px;border-bottom:1px solid var(--line);text-align:left}th{color:var(--mute);font-weight:600;font-size:13px}
-td.bad{color:var(--bad);font-weight:700}ul{padding-left:20px}li{margin:4px 0}
-.tag{display:inline-block;font-size:12px;padding:1px 8px;border-radius:999px;background:var(--badbg);color:var(--bad);font-weight:600;margin-left:6px;vertical-align:middle}.tag.b{background:var(--bluebg);color:var(--blue)}.tag.o{background:var(--bluebg);color:var(--ok)}
-button.th{float:right;border:1px solid var(--line);background:var(--card);color:var(--ink2);border-radius:8px;padding:4px 10px;cursor:pointer;font:inherit;font-size:13px}
-.ck{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:14px}.ck b{color:var(--ok)}
-footer{margin-top:40px;color:var(--mute);font-size:12.5px}
-@media(max-width:560px){h1{font-size:23px}.kpi .v{font-size:22px}}
-</style></head><body><div class="layout"><div class="wrap">
-<button class="th" id="theme" aria-label="테마 전환">🌓 테마</button>
-<header><div class="eyebrow">FAB TEST LOT DATA REVIEW</div><h1>FAB 테스트 Lot 데이터 이상 점검 보고서</h1>
-<div class="sub">fab_test_lot_data.csv · 2026-08-01 ~ 08-31 · 11,160 lot · 작성일 2026-11-05</div></header>
+:root{
+  --bg:#F4F6F9;--surface:#fff;--ink:#1B2433;--muted:#5E6B7D;--primary:#1F3A5F;--line:#D8DEE8;
+  --hold:#D92D20;--warn:#F79009;--ok:#067647;--ok-bg:#12B76A;--info:#2E90FA;--shade:rgba(247,144,9,.14);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){
+  --bg:#0F1520;--surface:#182131;--ink:#E6EBF2;--muted:#9AA7BA;--primary:#7FA8E0;--line:#2A364A;--shade:rgba(247,144,9,.18);
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 "Segoe UI","Malgun Gothic",system-ui,sans-serif;font-variant-numeric:tabular-nums}
+header{background:#1F3A5F;color:#fff;padding:10px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+header h1{font-size:16px;margin:0;font-weight:600}
+header small{opacity:.8}
+#banner{padding:16px 20px;color:#fff;display:flex;align-items:center;gap:16px;flex-wrap:wrap;transition:background .2s}
+#banner.running{background:var(--ok-bg)} #banner.running *{color:#04361f}
+#banner.warn{background:var(--warn)} #banner.warn *{color:#3b2300}
+#banner.hold{background:var(--hold)}
+#banner.ready{background:var(--ok)}
+#banner .icon{font-size:30px;line-height:1}
+#banner .msg{font-size:20px;font-weight:700}
+#banner .sub{font-size:13px;opacity:.95}
+#banner .dots{margin-left:auto;font-size:22px;letter-spacing:4px;white-space:nowrap}
+nav{display:flex;gap:2px;padding:0 20px;background:var(--surface);border-bottom:1px solid var(--line);overflow-x:auto}
+nav button{border:0;background:none;padding:12px 16px;cursor:pointer;color:var(--muted);font:inherit;border-bottom:3px solid transparent;white-space:nowrap}
+nav button.on{color:var(--primary);border-bottom-color:var(--primary);font-weight:600}
+main{padding:16px 20px;max-width:1280px;margin:0 auto}
+.panel{display:none}.panel.on{display:block}
+.grid{display:grid;grid-template-columns:2fr 1fr;gap:16px}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:16px}
+.card h2{font-size:14px;margin:0 0 10px;color:var(--muted);font-weight:600}
+.kpi{display:flex;justify-content:space-between;align-items:baseline;padding:6px 0;border-bottom:1px dashed var(--line)}
+.kpi:last-child{border:0}.kpi b{font-size:22px}
+.kpi b.bad{color:var(--hold)}.kpi b.good{color:var(--ok)}
+canvas{width:100%;height:320px;display:block}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:2px}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:6px 8px;width:100%}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--info);outline-offset:1px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:10px}
+.row>div{flex:1;min-width:120px}
+button.btn{background:var(--primary);color:#fff;border:0;border-radius:6px;padding:8px 14px;cursor:pointer;font:inherit}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]) button.btn{color:#0F1520}}
+button.btn.sec{background:transparent;color:var(--primary);border:1px solid var(--primary)}
+button.btn.danger{background:var(--hold);color:#fff}
+button.btn.go{background:var(--ok);color:#fff}
+button.btn:disabled{opacity:.4;cursor:not-allowed}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--muted);font-weight:600;background:var(--bg)}
+td.bad{color:var(--hold);font-weight:700}
+.tag{display:inline-block;padding:1px 8px;border-radius:99px;font-size:12px;font-weight:600;color:#fff}
+.tag.hold{background:var(--hold)}.tag.ok{background:var(--ok)}.tag.warn{background:var(--warn);color:#3b2300}.tag.info{background:var(--info)}
+.note{color:var(--muted);font-size:12px}
+.err{color:var(--hold);font-size:12px;min-height:16px}
+.result{padding:10px 12px;border-radius:8px;margin-top:10px;border-left:6px solid var(--line);background:var(--bg)}
+.result.pass{border-color:var(--ok)}.result.fail{border-color:var(--hold)}
+iframe#reportFrame{width:100%;height:640px;border:1px solid var(--line);border-radius:8px;background:#fff}
+.sites .row{margin-bottom:6px}
+ul.plain{margin:6px 0 0 18px;padding:0}
+</style>
+</head>
+<body>
+<header>
+  <h1>Junction Temp 모니터링 · Gpoly 두께 이상 선감지</h1>
+  <small>S3 Diffusion Gate Poly · 전 PPID · FDC 1sec</small>
+</header>
 
-<h2 style="margin-top:8px">1. 한눈에 보기</h2>
-<p>데이터 무결성(결측, 중복, 형식, 산식)은 모두 양호했습니다. 다만 <b>8월 17일</b>을 기점으로 두 가지 변화가 확인되었습니다.</p>
-<div class="kpis">
- <div class="kpi bad"><div class="l">03B 불량률 (헤드 일평균)</div><div class="v">2.4% → 6.5%</div><div class="d">평소 2~3% · 5% 이상은 이상 · 최대 lot 9.6%</div><span class="st crit">✕ 이상 · 15일 연속</span></div>
- <div class="kpi bad"><div class="l">03B soak 편차</div><div class="v">+2.18℃</div><div class="d">8/17 이전 +0.02℃ · 이후 600 lot 중 583 lot이 +1.5℃ 초과 · 최대 +3.28℃</div><span class="st warn">! UCL warn · I/L 0건</span></div>
- <div class="kpi"><div class="l">01C 접촉저항 Rc (8/2~8/4)</div><div class="v">최대 93.7 mΩ</div><div class="d">39 lot이 92.5 이상 · spec 95 초과 0건 · 8/4 PM 후 해소</div><span class="st warn">! 계측 알림 · spec 내</span></div>
- <div class="kpi"><div class="l">PROD_B07 신규 리비전</div><div class="v" style="color:var(--blue)">R15 · 436건</div><div class="d">8/17 09:26부터 R14와 병행</div></div>
- <div class="kpi ok"><div class="l">데이터 무결성</div><div class="v">이상 없음</div><div class="d">결측 · 중복 · 산식 불일치 0건</div><span class="st ok">✓ 정상</span></div>
+<div id="banner" class="running" role="status" aria-live="polite" data-testid="banner">
+  <span class="icon" id="bIcon">●</span>
+  <div><div class="msg" id="bMsg">정상 가동 중 (RUNNING)</div><div class="sub" id="bSub"></div></div>
+  <div class="dots" id="bDots" title="연속 불량 카운트"></div>
 </div>
-<div class="card"><h3>업무지침 기준 상태 (8월 전체)</h3><p class="cap">경고선과 상태 표시는 업무지침의 판단 기준을 그대로 적용했습니다.</p>
-<table class="crit-t"><tr><th>지표</th><th>기준</th><th>이번 달 결과</th><th>상태</th></tr>
-<tr><td>Rc</td><td>spec 95 mΩ 이하<br>92.5 mΩ 이상은 계측 알림 대상</td><td>최대 93.7 mΩ. 01C가 8/2 10:01~8/4 13:15에 39 lot이 92.5 이상, spec 초과 없음</td><td><span class="st warn">! 계측 알림</span></td></tr>
-<tr><td>soak 편차</td><td>+1.5℃ 초과: UCL warn(설비 계속 진행)<br>+3.5℃ 이상: I/L(설비 정지)</td><td>03B가 8/17 이후 583 lot 초과, 최대 +3.28℃라 I/L 0건. 나머지 8개 헤드는 최대 +1.35℃로 모두 기준 이내</td><td><span class="st warn">! UCL warn</span></td></tr>
-<tr><td>불량률</td><td>헤드 일평균 2~3%가 평소<br>5% 이상은 이상</td><td>03B가 8/17 이후 15일 모두 6.2~6.6%. 나머지 8개 헤드는 모두 5% 미만(279 헤드·일 중 263은 2~3%)</td><td><span class="st crit">✕ 이상</span></td></tr></table></div>
 
-<h2>2. 핵심 이슈 ① TEST_03 / TH_B <span class="tag">조치 필요</span></h2>
-<div class="callout"><b>결론</b> · 8/17부터 이 헤드에서만 soak 온도가 설정값보다 약 2℃ 높게 유지되고, 같은 시점에 불량률이 급등했습니다. 모든 제품에서 같은 현상이 나타나므로 제품이나 프로그램이 아니라 <b>이 헤드의 온도 제어(히터, 센서 등)</b> 문제일 가능성이 높습니다. 다만 이 데이터만으로 원인을 확정할 수는 없습니다.<br>업무지침 기준으로 soak 편차는 UCL warn(+1.5℃ 초과)이고 I/L(+3.5℃)에는 닿지 않아 설비가 멈추지 않았습니다. 불량률은 5% 이상인 이상 수준입니다.</div>
+<nav id="tabs">
+  <button data-tab="monitor" class="on">모니터링</button>
+  <button data-tab="measure">계측 · Release</button>
+  <button data-tab="log">이력</button>
+  <button data-tab="ai">AI 리포트</button>
+  <button data-tab="about">PoC 개요</button>
+  <button data-tab="settings">설정</button>
+</nav>
 
-<div class="card"><h3>설정 온도 대비 soak 온도 편차</h3><p class="cap">일 평균(℃). 8/17 이후 03B(TEST_03 / TH_B)만 약 +2℃로 UCL warn선을 넘고, I/L선(+3.5℃)에는 닿지 않습니다.</p>
-<div class="legend"><span><i style="background:var(--gray)"></i>나머지 8개 헤드</span><span><i style="background:var(--bad)"></i>03B</span><span><i class="dash" style="--c:var(--warn)"></i>UCL warn +1.5℃</span><span><i class="dash" style="--c:var(--crit)"></i>I/L +3.5℃</span></div><div id="c1"></div></div>
+<main>
+<!-- ============ 모니터링 ============ -->
+<section id="p-monitor" class="panel on">
+  <div class="grid">
+    <div>
+      <div class="card"><h2>Cold Junction Temp 실시간 추이 (최근 120타점)</h2><canvas id="chart" aria-label="온도 추이 차트"></canvas>
+        <div class="note">● 불량 타점(빨강) · 주황 음영 = 최근 N타점 · 점선 = 규격(하/상한)</div></div>
+      <div class="card"><h2>데이터 입력 / 시뮬레이터</h2>
+        <div class="row">
+          <div><label for="scenario">시나리오</label>
+            <select id="scenario"><option value="normal">정상</option><option value="fault">불량 발생 (연속 이탈)</option><option value="intermittent">간헐 이탈 (4연속 후 정상)</option></select></div>
+          <div><label for="speed">속도</label>
+            <select id="speed"><option value="1000">1초/타점 (실시간)</option><option value="200">0.2초/타점 (5배)</option><option value="50">0.05초/타점 (20배)</option></select></div>
+          <button class="btn" id="btnStart">▶ 시작</button>
+          <button class="btn sec" id="btnStop" disabled>■ 정지</button>
+          <button class="btn sec" id="btnReset">타점 초기화</button>
+        </div>
+        <div class="row">
+          <button class="btn danger" id="btnInjBad">불량 1점 주입</button>
+          <button class="btn go" id="btnInjOk">정상 1점 주입</button>
+          <div><label for="csvFile">CSV 업로드 (time,temp)</label><input type="file" id="csvFile" accept=".csv,text/csv"></div>
+          <button class="btn sec" id="btnCsvPlay" disabled>CSV 재생</button>
+          <button class="btn sec" id="btnCsvBatch" disabled>CSV 일괄 분석</button>
+        </div>
+        <div class="note" id="csvInfo"></div>
+      </div>
+      <div class="card"><h2>최근 타점</h2><table><thead><tr><th>#</th><th>시각</th><th>Temp(℃)</th><th>판정</th></tr></thead><tbody id="ptBody"></tbody></table></div>
+    </div>
+    <div>
+      <div class="card"><h2>현재 상태</h2>
+        <div class="kpi"><span>현재 온도</span><b id="kTemp">–</b></div>
+        <div class="kpi"><span>연속 불량</span><b id="kCons">0 / 5</b></div>
+        <div class="kpi"><span>LOT 상태</span><b id="kState">RUNNING</b></div>
+        <div class="kpi"><span>누적 타점</span><b id="kCount">0</b></div>
+      </div>
+      <div class="card"><h2>이번 세션 이벤트</h2>
+        <div class="kpi"><span>Hold 발생</span><b id="kHold">0</b></div>
+        <div class="kpi"><span>Release 완료</span><b class="good" id="kRel">0</b></div>
+        <div class="kpi"><span>limit-1 이탈(Hold 유지)</span><b class="bad" id="kOut">0</b></div>
+      </div>
+      <div class="card"><h2>PoC 목표 KPI (기획서)</h2>
+        <div class="kpi"><span>Wafer Loss</span><span><b class="bad">27매</b> → <b class="good">0매</b></span></div>
+        <div class="kpi"><span>6개월 손실</span><b>9.5억</b></div>
+        <div class="kpi"><span>연간 손실액</span><b class="bad">19억</b></div>
+        <div class="note">현재값 27매/6개월 · 측정: 실제 Loss율 기반</div>
+      </div>
+    </div>
+  </div>
+</section>
 
-<div class="card"><h3>일별 불량률</h3><p class="cap">헤드 일평균(%). 초록 띠가 평소 수준(2~3%), 점선이 이상 기준(5%)입니다.</p>
-<div class="legend"><span><i style="background:var(--gray)"></i>나머지 8개 헤드 평균</span><span><i style="background:var(--bad)"></i>03B</span><span><i class="band"></i>평소 2~3%</span><span><i class="dash" style="--c:var(--crit)"></i>이상 5%</span></div><div id="c2"></div></div>
+<!-- ============ 계측 · Release ============ -->
+<section id="p-measure" class="panel">
+  <div class="card"><h2>비정규 계측 입력 (Gpoly 두께, Site별)</h2>
+    <div class="note" id="measureGuide">Hold 상태에서만 입력할 수 있습니다.</div>
+    <div class="row" style="margin-top:10px">
+      <div><label for="engName">엔지니어 / 승인자</label><input id="engName" placeholder="예: 박근동"></div>
+      <div><label>판정 기준 limit-1 (Å)</label><div id="limitView" class="kpi" style="border:0"><b>–</b></div></div>
+    </div>
+    <div class="sites" id="sites"></div>
+    <div class="row"><button class="btn sec" id="btnAddSite">+ Site 추가</button>
+      <button class="btn sec" id="btnDelSite">– Site 삭제</button>
+      <button class="btn" id="btnSubmitMeas" disabled>계측 제출 · 판정</button></div>
+    <div class="err" id="measErr"></div>
+    <div id="measResult"></div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn go" id="btnRelease" disabled>Release 승인 (담당자)</button>
+      <button class="btn danger" id="btnKeepHold" disabled>Hold 유지 확정</button>
+    </div>
+    <div class="note">Release는 모든 Site가 limit-1 이내일 때만 가능하며, 최종 확정은 담당자 승인으로 이뤄집니다. AI는 판정하지 않고 리포트·권고만 제공합니다.</div>
+  </div>
+</section>
 
-<div class="card"><h3>8/17 이후 장비·헤드별 평균 불량률</h3><p class="cap">9개 헤드 중 5% 이상 이상 수준은 03B 한 곳뿐입니다. (TEST_03 전체 평균이 높아 보이는 이유)</p>
-<div class="legend"><span><i class="band"></i>평소 2~3%</span><span><i class="dash" style="--c:var(--crit)"></i>이상 5%</span></div><div id="c3"></div></div>
+<!-- ============ 이력 ============ -->
+<section id="p-log" class="panel">
+  <div class="card"><h2>이벤트 / 감사 로그</h2>
+    <div class="row"><button class="btn sec" id="btnLogCsv">CSV 내보내기</button><button class="btn sec" id="btnLogClear">이력 삭제</button></div>
+    <table><thead><tr><th>시각</th><th>구분</th><th>내용</th></tr></thead><tbody id="logBody"></tbody></table>
+  </div>
+</section>
 
-<table><tr><th>지표</th><th>8/17 이전</th><th>8/17 이후</th></tr>
-<tr><td>soak − set 온도 편차(평균)</td><td>+0.02 ℃</td><td class="bad">+2.18 ℃ (1.19~3.28)</td></tr>
-<tr><td>불량률(평균)</td><td>2.4%</td><td class="bad">6.5% (최대 9.6%)</td></tr></table>
-<ul><li>약 2주간 이 헤드가 계속 가동되었으므로 <b>누적 불량 규모와 후속 공정 영향</b> 확인이 필요합니다.</li><li>TEST_03의 TH_A, TH_C는 정상입니다.</li></ul>
+<!-- ============ AI ============ -->
+<section id="p-ai" class="panel">
+  <div class="card"><h2>AI 연결</h2>
+    <div class="row">
+      <div style="flex:2"><label for="apiKey">Anthropic API Key (저장되지 않음, 새로고침 시 재입력)</label><input id="apiKey" type="password" autocomplete="off" placeholder="sk-ant-..."></div>
+      <div><label for="modelId">모델 ID</label><input id="modelId" list="modelList" value="claude-sonnet-5-5"><datalist id="modelList"><option value="claude-sonnet-5-5"><option value="claude-opus-5-5"><option value="claude-fable-5-1"><option value="claude-haiku-5-5"></datalist></div>
+      <div style="max-width:120px"><label>temperature</label><input id="tempFixed" value="1" disabled></div>
+      <button class="btn sec" id="btnTestAi">연결 테스트</button>
+    </div>
+    <div class="note" id="aiStatus">API Key를 입력하면 리포트 생성 기능이 활성화됩니다. (모니터링·Hold·Release는 키 없이 동작)</div>
+  </div>
+  <div class="card"><h2>AI 분석 리포트 생성 (단일 HTML)</h2>
+    <div class="note">구성: 요약 3줄 → 핵심 지표 카드 → 차트 → 상세 표 → 권고 조치·확인란</div>
+    <div style="margin:8px 0"><label for="extraPrompt">추가 지시 (선택)</label><textarea id="extraPrompt" rows="2" placeholder="예: 5Site 평균과 산포를 강조해줘"></textarea></div>
+    <div class="row"><button class="btn" id="btnGenReport" disabled>리포트 생성</button>
+      <button class="btn sec" id="btnShowPrompt">프롬프트 미리보기</button>
+      <button class="btn sec" id="btnDlReport" disabled>HTML 다운로드</button></div>
+    <div class="err" id="aiErr"></div>
+    <details id="promptBox" style="margin:8px 0"><summary>전송 프롬프트</summary><pre id="promptView" style="white-space:pre-wrap;font-size:12px"></pre></details>
+    <iframe id="reportFrame" sandbox="" title="AI 리포트 미리보기" srcdoc="&lt;p style='font-family:sans-serif;color:#888;padding:16px'&gt;생성된 리포트가 여기에 표시됩니다.&lt;/p&gt;"></iframe>
+  </div>
+</section>
 
-<h2>3. 핵심 이슈 ② PROD_B07 프로그램 리비전 <span class="tag b">확인 필요</span></h2>
-<div class="callout info"><b>결론</b> · 8/17 09:26부터 PROD_B07에서만 R15가 투입되어 R14와 병행 사용 중입니다. 개정일이 이슈 ①과 같아서 두 현상을 분리해 평가해야 합니다. 롤아웃인지 일부 장비 한정인지는 데이터로 알 수 없습니다.</div>
-<div class="card"><h3>PROD_B07 일별 lot 수 (리비전별)</h3><p class="cap">8/17 이후 R15가 함께 쓰입니다.</p>
-<div class="legend"><span><i class="sq" style="background:var(--gray)"></i>R14</span><span><i class="sq" style="background:var(--blue)"></i>R15</span></div><div id="c4"></div></div>
-<table><tr><th>리비전</th><th>건수</th><th>불량률 평균</th><th>시험시간 평균</th></tr><tr><td>R14</td><td>2,354</td><td>2.67%</td><td>3,501 s</td></tr><tr><td>R15</td><td>436</td><td>2.45%</td><td>3,503 s</td></tr></table>
-<p>R15는 불량률이 약간 낮고 시험 시간과 접촉저항은 거의 같습니다.</p>
+<!-- ============ 개요 ============ -->
+<section id="p-about" class="panel">
+  <div class="card"><h2>과제명</h2><b>Junction Temp 모니터링 통한 Gpoly 두께 이상 선감지 후 Auto 이상 발의 최소화</b>
+    <div class="note">작성자 박근동 · 2026.11.05 · 양산공정개발 및 파운드리 선단 Node 선행공정 품질 불량 개선</div></div>
+  <div class="card"><h2>1. 문제 정의</h2><ul class="plain">
+    <li><b>Pain Point</b>: Junction Temp 불량 시 Gpoly 두께 이상으로 Auto 이상 발의 (6개월간 3건)</li>
+    <li><b>의사결정 질문</b>: 후속 CMP·NSE Care 후 최종 두께는 Targeting했으나 OOS 근거로 출하금지 요청(양산QA)</li>
+    <li><b>한계</b>: 최종 NSE 후 두께 Targeting 시 수율 문제 없으나 QA 재가 불가로 Scrap 불가피</li></ul></div>
+  <div class="card"><h2>2. PoC 설계</h2><ul class="plain">
+    <li><b>목표</b>: Cold junction Temp 최근 5타점 연속 불량 시 자동 Hold → 엔지니어 비정규 계측 → Site 기준 limit-1 미이탈 시 Auto Release (이탈 시 Hold)</li>
+    <li><b>적용 범위</b>: S3 diffusion Gate Poly 전 PPID (All 제품)</li>
+    <li><b>활용 데이터</b>: EES의 FDC 실시간 Data (1sec)</li>
+    <li><b>일정</b>: 1~2주 데이터 수집·전처리, 프롬프트/모델 설계 · 3~4주 결과 검증, 현업 테스트 및 성과 측정</li>
+    <li><b>KPI</b>: Wafer Loss 27매/6개월 → 0매</li></ul></div>
+  <div class="card"><h2>3. Claude 활용 및 비즈니스 가치</h2><ul class="plain">
+    <li><b>프롬프트</b>: 역할 · 맥락 · 과업 · 제약(추정 금지, 근거 명시) · 출력형식(HTML)</li>
+    <li><b>산출물</b>: 요약 3줄 → 핵심 지표 카드 → 차트 → 상세 표 → 권고 조치·확인란</li>
+    <li><b>기대 효과</b>: 27매/6개월 = 9.5억, 연간 19억 손실액 방지</li>
+    <li><b>확산</b>: 파일럿 확대 → 프롬프트·템플릿 자산화 → 정기 운영(양산공정 관리 편입)</li></ul>
+    <div class="note">※ 본 앱의 규격값(온도·두께)은 시연용 가정치이며 설정 탭에서 실제 값으로 변경하세요.</div></div>
+</section>
 
-<h2>4. 참고 사항 <span class="tag w">계측 알림 있음 · spec 내</span></h2>
-<div class="card"><h3>접촉저항(Rc) 추이</h3><p class="cap">헤드마다 15~25일 주기로 서서히 오르다 급락합니다(교체 또는 PM 주기 추정). 업무지침 기준 계측 알림(92.5 mΩ 이상)은 01C 8/2~8/4의 39 lot뿐이었고, spec 95 mΩ 초과는 없습니다. 01C는 8/4 PM 후 Rc 78 mΩ로 내려갔습니다.</p>
-<div class="legend"><span><i style="background:var(--blue)"></i>전체 일 평균</span><span><i style="background:var(--gray)"></i>헤드별 (3일 이동평균)</span><span><i class="dash" style="--c:var(--mute)"></i>일 최대 Rc</span><span><i class="dash" style="--c:var(--warn)"></i>계측 알림 92.5</span><span><i class="dash" style="--c:var(--crit)"></i>spec 95</span></div><div id="c5"></div></div>
-<ul><li><b>jam_count</b>: 최대 5이며 제품, 장비 간 차이는 없습니다.</li><li><b>데이터 구조</b>: 제품, 장비, 헤드가 정확히 균등하게 분포하고 하루 360건씩 생성되어 시뮬레이션 또는 연습용 데이터로 보입니다.</li></ul>
+<!-- ============ 설정 ============ -->
+<section id="p-settings" class="panel">
+  <div class="card"><h2>규격 · 룰 설정</h2>
+    <div class="row">
+      <div><label for="cLot">LOT ID</label><input id="cLot"></div>
+      <div><label for="cTL">Temp 하한 (℃)</label><input id="cTL" type="number" step="0.1"></div>
+      <div><label for="cTH">Temp 상한 (℃)</label><input id="cTH" type="number" step="0.1"></div>
+      <div><label for="cN">연속 불량 N (타점)</label><input id="cN" type="number" min="1" max="20" step="1"></div>
+    </div>
+    <div class="row">
+      <div><label for="cLL">limit-1 하한 (두께 Å)</label><input id="cLL" type="number" step="1"></div>
+      <div><label for="cLH">limit-1 상한 (두께 Å)</label><input id="cLH" type="number" step="1"></div>
+      <button class="btn" id="btnSaveCfg">설정 적용</button>
+    </div>
+    <div class="err" id="cfgErr"></div>
+    <div class="note">설정은 이 브라우저(localStorage)에 저장됩니다. API Key는 저장하지 않습니다.</div>
+  </div>
+  <div class="card"><h2>초기화</h2><button class="btn danger" id="btnFactory">모든 설정·이력 초기화</button></div>
+</section>
+</main>
 
-<h2>5. 데이터 무결성 점검</h2>
-<div class="card"><div class="ck"><b>✓</b><span>결측치 / 중복 행 / 중복 lot_id 없음</span><b>✓</b><span>timestamp 형식 및 정렬 정상 (8/1~8/31)</span><b>✓</b><span>fail_rate = fail_count / device_count 전 행 일치</span><b>✓</b><span>yield_rate = 1 − fail_rate 전 행 일치</span><b>✓</b><span>lot_id 내 장비·헤드·제품·날짜가 각 컬럼과 전 행 일치</span><b>✓</b><span>제품-프로그램-설정온도 매핑 일관 (B07만 R14/R15 혼재)</span></div></div>
-<footer>차트에 마우스를 올리면 값을 볼 수 있습니다. 모든 수치는 위 CSV 한 파일에서 계산했습니다.</footer>
-</div>
-<aside class="chat" aria-label="데이터 질문 챗봇">
- <div class="chat-h"><b>💬 데이터에 질문하기</b><small>업무지침, 대시보드 데이터, 설비 이력, 인수인계 기록만 근거로 답합니다</small></div>
- <details id="cfg" open><summary>모델 설정</summary>
-  <label for="cm">model_name</label><input id="cm" autocomplete="off" placeholder="예: gpt-4o-mini">
-  <label for="cu">base_url</label><input id="cu" autocomplete="off" placeholder="예: https://api.openai.com/v1">
-  <label for="ck">api_key</label><input id="ck" type="password" autocomplete="off" placeholder="sk-...">
-  <div class="note">OpenAI 호환 /chat/completions 형식을 사용합니다. api_key는 저장하지 않으며 새로고침하면 지워집니다. 키는 입력한 base_url로만 전송됩니다.</div>
- </details>
- <div id="msgs"></div>
- <div class="chips" id="chips"></div>
- <form id="cf"><textarea id="ci" placeholder="질문 입력 (Enter 전송)" rows="1"></textarea><button id="cs" type="submit">전송</button></form>
-</aside></div><div class="tip" id="tip"></div>
 <script>
-const D={"days": ["08/01", "08/02", "08/03", "08/04", "08/05", "08/06", "08/07", "08/08", "08/09", "08/10", "08/11", "08/12", "08/13", "08/14", "08/15", "08/16", "08/17", "08/18", "08/19", "08/20", "08/21", "08/22", "08/23", "08/24", "08/25", "08/26", "08/27", "08/28", "08/29", "08/30", "08/31"], "dT_bad": [-0.034, -0.049, 0.132, 0.003, 0.02, 0.08, 0.027, 0.008, -0.012, -0.09, 0.052, -0.022, 0.101, 0.036, 0.024, 0.018, 2.182, 2.178, 2.227, 2.211, 2.052, 2.234, 2.17, 2.158, 2.21, 2.105, 2.221, 2.211, 2.18, 2.185, 2.184], "dT_oth": [-0.01, -0.023, -0.023, 0.012, 0.026, -0.009, 0.015, -0.003, 0.042, 0.025, -0.01, -0.015, -0.012, -0.005, -0.007, -0.028, 0.013, 0.013, 0.013, -0.017, -0.044, 0.042, 0.013, -0.006, -0.038, 0.002, 0.002, -0.018, -0.004, -0.003, 0.001], "fr_bad": [2.223, 2.243, 2.672, 2.338, 2.38, 2.483, 2.425, 2.34, 2.315, 2.143, 2.46, 2.275, 2.53, 2.248, 2.435, 2.475, 6.535, 6.645, 6.53, 6.607, 6.21, 6.502, 6.447, 6.523, 6.343, 6.175, 6.62, 6.57, 6.51, 6.513, 6.41], "fr_oth": [2.431, 2.399, 2.398, 2.406, 2.431, 2.394, 2.457, 2.436, 2.557, 2.421, 2.375, 2.378, 2.376, 2.411, 2.366, 2.362, 2.479, 2.418, 2.428, 2.453, 2.325, 2.536, 2.401, 2.403, 2.298, 2.439, 2.451, 2.394, 2.371, 2.428, 2.423], "bars": [{"k": "01A", "v": 2.43, "bad": false}, {"k": "01B", "v": 2.37, "bad": false}, {"k": "01C", "v": 2.3, "bad": false}, {"k": "02A", "v": 2.36, "bad": false}, {"k": "02B", "v": 2.37, "bad": false}, {"k": "02C", "v": 2.51, "bad": false}, {"k": "03A", "v": 2.42, "bad": false}, {"k": "03B", "v": 6.48, "bad": true}, {"k": "03C", "v": 2.58, "bad": false}], "r14": [90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 74, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60, 60], "r15": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30], "cr": [85.22, 85.53, 85.87, 85.1, 83.3, 82.8, 83.11, 83.36, 83.67, 83.95, 83.83, 83.4, 82.39, 81.72, 81.84, 81.1, 81.37, 81.72, 82.03, 82.33, 82.62, 82.92, 83.23, 83.52, 83.42, 82.93, 83.24, 83.55, 83.26, 83.04, 83.26], "cr_max": [92.43, 93.05, 93.21, 93.7, 89.13, 87.74, 88.6, 88.41, 88.89, 89.33, 89.06, 89.14, 89.67, 89.1, 89.33, 86.56, 87.27, 87.15, 87.64, 87.61, 88.26, 88.69, 88.72, 89.09, 89.2, 88.56, 88.83, 89.25, 88.95, 86.76, 87.03], "cr_h": [[84.91, 85.03, 85.19, 85.5, 85.81, 86.1, 86.42, 86.73, 87.04, 87.33, 87.63, 87.9, 86.1, 82.88, 79.73, 78.58, 78.93, 79.23, 79.6, 79.86, 80.15, 80.43, 80.71, 81.03, 81.35, 81.64, 81.92, 82.18, 82.51, 82.83, 83.14], [87.53, 87.64, 87.83, 86.91, 83.74, 80.53, 78.57, 78.88, 79.16, 79.42, 79.71, 80.0, 80.33, 80.64, 80.95, 81.24, 81.51, 81.81, 82.13, 82.46, 82.74, 83.01, 83.29, 83.58, 83.87, 84.17, 84.49, 84.81, 85.13, 85.46, 85.71], [91.54, 91.76, 91.98, 90.41, 85.84, 81.19, 78.52, 78.79, 79.14, 79.43, 79.73, 79.99, 80.29, 80.63, 80.97, 81.28, 81.5, 81.77, 82.06, 82.44, 82.75, 83.09, 83.38, 83.68, 83.95, 84.22, 84.49, 84.83, 85.1, 85.44, 85.72], [84.14, 84.28, 84.44, 84.73, 85.04, 85.38, 85.73, 86.07, 86.35, 86.61, 86.87, 87.16, 87.49, 87.84, 87.69, 84.5, 81.25, 78.51, 78.78, 79.09, 79.33, 79.62, 79.95, 80.29, 80.66, 80.96, 81.27, 81.54, 81.81, 82.11, 82.43], [80.04, 80.23, 80.41, 80.71, 81.02, 81.3, 81.61, 81.85, 82.12, 82.4, 82.75, 83.06, 83.37, 83.67, 83.99, 84.33, 84.58, 84.83, 85.12, 85.47, 85.83, 86.09, 86.38, 86.67, 86.97, 87.27, 87.54, 87.87, 86.5, 83.35, 80.15], [87.19, 87.35, 87.48, 87.8, 86.99, 83.82, 80.64, 78.48, 78.76, 78.97, 79.37, 79.7, 80.05, 80.31, 80.59, 80.87, 81.14, 81.46, 81.83, 82.21, 82.52, 82.76, 83.04, 83.32, 83.65, 83.91, 84.21, 84.52, 84.81, 85.14, 85.43], [85.48, 85.61, 85.74, 85.99, 86.3, 86.63, 86.98, 87.32, 87.61, 87.9, 86.78, 83.59, 80.35, 78.52, 78.79, 79.12, 79.44, 79.79, 80.07, 80.34, 80.61, 80.93, 81.22, 81.5, 81.79, 82.1, 82.46, 82.75, 83.03, 83.31, 83.62], [84.88, 85.05, 85.23, 85.55, 85.82, 86.06, 86.36, 86.65, 86.95, 87.25, 87.57, 87.91, 86.37, 83.19, 80.0, 78.61, 78.86, 79.13, 79.41, 79.73, 80.06, 80.4, 80.72, 81.01, 81.32, 81.6, 81.87, 82.12, 82.4, 82.72, 82.99], [81.29, 81.43, 81.56, 81.91, 82.25, 82.6, 82.79, 83.03, 83.27, 83.62, 83.91, 84.2, 84.49, 84.82, 85.12, 85.43, 85.72, 86.05, 86.36, 86.63, 86.92, 87.27, 87.64, 87.96, 86.96, 83.73, 80.51, 78.54, 78.85, 79.17, 79.48]]};
-const W=720,H=300,M={l:44,r:14,t:12,b:28},iw=W-M.l-M.r,ih=H-M.t-M.b,N=D.days.length,EV=D.days.indexOf('08/17');
-const tip=document.getElementById('tip');
-const css=n=>`var(--${n})`;
-const xp=i=>M.l+iw*(i+.5)/N;
-function showTip(e,html){tip.innerHTML=html;tip.style.display='block';const r=tip.getBoundingClientRect();let x=e.clientX+14,y=e.clientY+14;if(x+r.width>innerWidth-8)x=e.clientX-r.width-14;if(y+r.height>innerHeight-8)y=e.clientY-r.height-14;tip.style.left=x+'px';tip.style.top=y+'px'}
-const hide=()=>tip.style.display='none';
-const XT=[0,4,9,14,19,24,30];
-function frame(ymin,ymax,step,fmt){
- const y=v=>M.t+ih*(1-(v-ymin)/(ymax-ymin));let s=`<svg viewBox="0 0 ${W} ${H}" role="img">`;
- for(let v=ymin;v<=ymax+1e-9;v+=step){s+=`<line x1="${M.l}" x2="${W-M.r}" y1="${y(v)}" y2="${y(v)}" stroke="${css('grid')}"/><text x="${M.l-8}" y="${y(v)+4}" text-anchor="end">${fmt(v)}</text>`}
- XT.forEach(i=>{s+=`<text x="${xp(i)}" y="${H-8}" text-anchor="middle">${D.days[i]}</text>`});
- return{y,s}}
-function mount(id,s){const el=document.getElementById(id);el.innerHTML=s+'</svg>';return el.querySelector('svg')}
-function path(arr,y){return arr.map((v,i)=>(i?'L':'M')+xp(i).toFixed(1)+' '+y(v).toFixed(1)).join('')}
-function marker(){return `<line x1="${xp(EV)}" x2="${xp(EV)}" y1="${M.t}" y2="${H-M.b}" stroke="${css('ink2')}" stroke-dasharray="4 4"/><text x="${xp(EV)+5}" y="${M.t+10}" style="fill:var(--ink2);font-weight:700">8/17</text>`}
-const REF={warn:'var(--warn)',crit:'var(--crit)',mute:'var(--mute)'};
-function refs(y,o){let s='';
- (o.bands||[]).forEach(b=>{s+=`<rect x="${M.l}" y="${y(b.to)}" width="${iw}" height="${y(b.from)-y(b.to)}" fill="var(--okbg)"/>`});
- (o.lines||[]).forEach(l=>{s+=`<line x1="${M.l}" x2="${W-M.r}" y1="${y(l.v)}" y2="${y(l.v)}" stroke="${REF[l.k]}" stroke-width="1.5" stroke-dasharray="6 4"/><text x="${W-M.r-4}" y="${y(l.v)-5}" text-anchor="end" style="fill:${REF[l.k]};font-weight:700">${l.label}</text>`});
- return s}
-function line(id,series,o){
- const f=frame(o.min,o.max,o.step,o.fmt);let s=f.s+(o.refs?refs(f.y,o.refs):'')+marker();
- series.forEach(se=>{s+=`<path d="${path(se.v,f.y)}" fill="none" stroke="${css(se.c)}" stroke-width="${se.w||2}" stroke-linejoin="round" stroke-linecap="round" opacity="${se.o||1}"${se.dash?` stroke-dasharray="${se.dash}"`:''}/>`});
- s+=`<line id="${id}x" y1="${M.t}" y2="${H-M.b}" stroke="${css('mute')}" stroke-width="1" style="display:none"/><g id="${id}d"></g><rect x="${M.l}" y="${M.t}" width="${iw}" height="${ih}" fill="transparent" id="${id}r"/>`;
- const svg=mount(id,s),r=svg.querySelector('#'+id+'r'),x=svg.querySelector('#'+id+'x'),g=svg.querySelector('#'+id+'d');
- r.addEventListener('mousemove',e=>{const b=svg.getBoundingClientRect(),px=(e.clientX-b.left)/b.width*W;const i=Math.max(0,Math.min(N-1,Math.round((px-M.l)/iw*N-.5)));
-  x.style.display='';x.setAttribute('x1',xp(i));x.setAttribute('x2',xp(i));
-  g.innerHTML=series.filter(se=>se.n).map(se=>`<circle cx="${xp(i)}" cy="${f.y(se.v[i])}" r="4.5" fill="${css(se.c)}" stroke="${css('card')}" stroke-width="2"/>`).join('');
-  showTip(e,`<b>${D.days[i]}</b>`+series.filter(se=>se.n).map(se=>`<div><span class="dot" style="background:${css(se.c)}"></span>${se.n}: <b style="display:inline">${o.tf(se.v[i])}</b></div>`).join(''))});
- r.addEventListener('mouseleave',()=>{hide();x.style.display='none';g.innerHTML=''})}
-const FR_REFS={bands:[{from:2,to:3,label:'평소 2~3%'}],lines:[{v:5,label:'이상 5%',k:'crit'}]};
-line('c1',[{v:D.dT_oth,c:'gray',n:'나머지 8개 헤드'},{v:D.dT_bad,c:'bad',n:'03B',w:2.6}],{min:0,max:4,step:1,fmt:v=>'+'+v+'℃',refs:{lines:[{v:1.5,label:'UCL warn +1.5℃',k:'warn'},{v:3.5,label:'I/L +3.5℃',k:'crit'}]},tf:v=>(v>=0?'+':'')+v.toFixed(2)+' ℃'});
-line('c2',[{v:D.fr_oth,c:'gray',n:'나머지 8개 헤드 평균'},{v:D.fr_bad,c:'bad',n:'03B',w:2.6}],{min:0,max:8,step:2,fmt:v=>v+'%',refs:FR_REFS,tf:v=>v.toFixed(2)+' %'});
-(function(){const B=D.bars,n=B.length,y=v=>M.t+ih*(1-v/7);let s=`<svg viewBox="0 0 ${W} ${H}" role="img">`;
- for(let v=0;v<=7;v+=1)s+=`<line x1="${M.l}" x2="${W-M.r}" y1="${y(v)}" y2="${y(v)}" stroke="${css('grid')}"/><text x="${M.l-8}" y="${y(v)+4}" text-anchor="end">${v}%</text>`;
- s+=refs(y,FR_REFS);
- const bw=iw/n;B.forEach((b,i)=>{const x=M.l+bw*i+bw*.18,w=bw*.64,t=y(b.v);
-  s+=`<path class="bar" data-i="${i}" d="M${x} ${M.t+ih}V${t+4}Q${x} ${t} ${x+4} ${t}H${x+w-4}Q${x+w} ${t} ${x+w} ${t+4}V${M.t+ih}Z" fill="${css(b.bad?'bad':'gray')}"/><text x="${x+w/2}" y="${t-6}" text-anchor="middle" style="fill:var(--${b.bad?'bad':'ink2'});font-weight:${b.bad?700:400};font-size:12px">${b.v.toFixed(1)}%</text><text x="${x+w/2}" y="${H-8}" text-anchor="middle" style="font-size:12px;${b.bad?'fill:var(--bad);font-weight:700':''}">${b.k}</text>`});
- const svg=mount('c3',s);svg.querySelectorAll('.bar').forEach(p=>{const b=B[p.dataset.i];p.addEventListener('mousemove',e=>showTip(e,`<b>${b.k} (TEST_${b.k.slice(0,2)} / TH_${b.k.slice(-1)})</b>평균 불량률 ${b.v.toFixed(2)}%<br>${b.v>=5?'✕ 이상 (5% 이상)':b.v<=3?'✓ 평소 범위 (2~3%)':'평소 범위 초과 (이상 기준 미만)'}`));p.addEventListener('mouseleave',hide)})})();
-(function(){const mx=Math.max(...D.r14.map((v,i)=>v+D.r15[i])),top=Math.ceil((mx+10)/20)*20,f=frame(0,top,20,v=>v);let s=f.s+marker();const bw=iw/N*.72;
- for(let i=0;i<N;i++){const x=xp(i)-bw/2,a=D.r14[i],c=D.r15[i],y0=M.t+ih,ya=f.y(a),yb=f.y(a+c);
-  s+=`<rect x="${x}" y="${ya}" width="${bw}" height="${y0-ya}" fill="${css('gray')}" rx="2"/>`;if(c)s+=`<rect x="${x}" y="${yb}" width="${bw}" height="${ya-yb-1.5}" fill="${css('blue')}" rx="2"/>`;
-  s+=`<rect class="hb" data-i="${i}" x="${xp(i)-iw/N/2}" y="${M.t}" width="${iw/N}" height="${ih}" fill="transparent"/>`}
- const svg=mount('c4',s);svg.querySelectorAll('.hb').forEach(r=>{const i=+r.dataset.i;r.addEventListener('mousemove',e=>showTip(e,`<b>${D.days[i]}</b><div><span class="dot" style="background:${css('gray')}"></span>R14: ${D.r14[i]}건</div><div><span class="dot" style="background:${css('blue')}"></span>R15: ${D.r15[i]}건</div>`));r.addEventListener('mouseleave',hide)})})();
-line('c5',[...D.cr_h.map(v=>({v,c:'gray',w:1,o:.55})),{v:D.cr_max,c:'mute',n:'일 최대 Rc',w:1.6,dash:'5 4'},{v:D.cr,c:'blue',n:'전체 일 평균',w:2.8}],{min:76,max:96,step:4,fmt:v=>v,refs:{lines:[{v:92.5,label:'계측 알림 92.5',k:'warn'},{v:95,label:'spec 95 mΩ',k:'crit'}]},tf:v=>v.toFixed(1)+' mΩ'});
-// ===== 챗봇 =====
-const FACTS=`[보고서 요약]
-- 대상: fab_test_lot_data.csv, 2026-08-01~08-31, 11,160 lot, 제품 4종(A12,B07,C03,D09), 장비 3대(TEST_01~03), 헤드 3개(TH_A~C).
-- 데이터 무결성: 결측치/중복 행/중복 lot_id 없음, fail_rate·yield_rate 산식 전 행 일치, lot_id와 각 컬럼 전 행 일치, timestamp 정상.
-- 이슈1(조치 필요): TEST_03/TH_B가 8/17부터 soak 온도가 설정값보다 평균 +2.18℃ 높음(8/17 이전 +0.02℃, 범위 1.19~3.28). 8/17 이후 이 조합 600 lot 전부 편차 +1.19℃ 이상, 그중 583 lot은 +1.5℃ 초과(UCL warn), 최대 +3.28℃라 I/L(+3.5℃)은 한 번도 걸리지 않음. 나머지 8개 헤드의 편차는 최대 +1.35℃로 기준 이내. 같은 시점부터 불량률 평균 2.4%→6.5%(최대 9.6%, 약 2.7배). 나머지 8개 조합은 변화 없음(8/17 이후 약 2.4%). 모든 제품에서 동일 → 제품/프로그램이 아닌 헤드의 온도 제어 문제 가능성(데이터만으로 확정 불가). TEST_03 전체 평균 불량률(3.1%)이 TEST_01/02(약 2.4%)보다 높은 것은 TH_B 때문. 약 2주간 가동되어 누적 불량 영향 확인 필요.
-- 이슈2(확인 필요): PROD_B07에서만 8/17 09:26부터 program_rev R15 투입, R14와 병행. R14 2,354건(불량률 2.67%, 시험시간 3,501s), R15 436건(불량률 2.45%, 시험시간 3,503s). 접촉저항은 거의 같음. 설비 이력상 8/17 09:00 TEST_02(TH_A/B/C 전체)에 김도윤 프로가 TP_B07 Rev.14→15를 적용한 계획된 변경이며, 개정일은 이슈1과 같지만 이슈1과는 무관.
-- 참고: 접촉저항(77~94 mΩ)은 헤드마다 15~25일 주기로 서서히 오르다 급락(교체/PM 주기 추정), 업무지침 기준 계측 알림(92.5 mΩ 이상)은 01C의 8/2 10:01~8/4 13:15 구간 39 lot뿐(최대 93.7 mΩ)이고 spec 95 mΩ 초과는 없음. 01C는 8/4 PM 후 Rc 78 mΩ로 해소. jam_count 최대 5, 제품·장비 간 차이 없음. 제품·장비·헤드가 균등 분포, 하루 360건 → 시뮬레이션/연습용 데이터로 보임.`;
-const GUIDE=`[업무지침] (업무지침.md. 답변은 반드시 이 용어와 판단 기준에 맞출 것)
-■ 파트와 설비
-- 대상은 반도체 후공정 TEST 파트(패키지 최종 테스트). 설비는 TEST_01~03호기이고 각 호기에 테스트 헤드 TH_A/B/C가 있다.
-- 현장 표기: 헤드는 "01A", "03B"처럼 쓴다. 01A = TEST_01 TH_A. 호기만 말할 때는 "01호기".
-- 교대: 주간 06~14 / 오후 14~22 / 야간 22~06.
-- 야간조 기록은 교대 시작일 기준으로 날짜를 쓰고, 시각은 실제 날짜로 해석한다. 예: 8/1 야간 블록의 "00:15"는 8/2 00:15이다.
-■ 용어
-- Rc(접촉저항, contact_res_mohm, 단위 mΩ): 소켓·포고핀 접촉 상태 지표. 소켓 교체 직후 가장 낮고 시간이 지나며 올라간다.
-- soak 온도: 핸들러가 디바이스를 설정 온도까지 가열한 뒤 측정한 온도.
-- soak 편차 = soak_temp_c − set_temp_c (단위 ℃).
-- 테스트 프로그램별 설정 온도: TP_A12 85℃, TP_B07 90℃, TP_C03 105℃, TP_D09 125℃.
-- UCL warn: 관리 상한을 넘었다는 경고. 설비는 계속 진행한다.
-- I/L(인터락): 걸리면 설비가 멈춘다.
-- cal(auto calibration): 핸들러 온도 자동 보정. 실행하면 기존 offset 값이 덮어써진다.
-- PM: 정기 예방 정비. 컨택터 클리닝, Pick-up tip·Socket·Pogo pin kit 교체, golden unit 20ea 상관 확인 후 release.
-- golden unit: 상관 확인용 기준 디바이스.
-- 한울테크: PM 협력업체.
-■ 판단 기준
-- Rc: spec 95 mΩ 이하. 92.5 mΩ 이상이면 계측 알림 대상이다.
-- soak 편차: +1.5℃ 초과 시 UCL warn, +3.5℃ 이상 시 I/L.
-- fail rate: 헤드 일평균 2~3%가 평소 수준이다. 5% 이상이면 이상으로 본다. (3~5% 구간은 기준에 정의되어 있지 않다)
+"use strict";
+/* ================= Rules (순수 함수) ================= */
+const Rules = {
+  isBad(temp, cfg){ return temp < cfg.tempLow || temp > cfg.tempHigh; },
+  /** 가장 최근 타점부터 연속 불량 개수 */
+  consecutiveBad(flags){ let n=0; for(let i=flags.length-1;i>=0&&flags[i];i--) n++; return n; },
+  /** sites: number[]; 경계 포함 */
+  evaluateRelease(sites, cfg){
+    const out = sites.map((v,i)=>({site:i+1,value:v,ok:v>=cfg.limLow&&v<=cfg.limHigh}));
+    return { pass: out.length>0 && out.every(o=>o.ok), detail: out };
+  },
+  validateCfg(c){
+    const e=[];
+    if(!(c.tempLow<c.tempHigh)) e.push('Temp 하한은 상한보다 작아야 합니다.');
+    if(!(c.limLow<c.limHigh)) e.push('limit-1 하한은 상한보다 작아야 합니다.');
+    if(!Number.isInteger(c.n)||c.n<1||c.n>20) e.push('연속 불량 N은 1~20의 정수여야 합니다.');
+    if([c.tempLow,c.tempHigh,c.limLow,c.limHigh].some(v=>!Number.isFinite(v))) e.push('숫자를 입력하세요.');
+    if(!String(c.lot||'').trim()) e.push('LOT ID를 입력하세요.');
+    return e;
+  },
+  parseCsv(text){
+    const pts=[]; let skipped=0;
+    text.split(/\r?\n/).forEach((ln,i)=>{
+      ln=ln.trim(); if(!ln) return;
+      const cols=ln.split(','); const v=parseFloat(cols[cols.length-1]);
+      if(!Number.isFinite(v)||!/^-?\d+(\.\d+)?$/.test(cols[cols.length-1].trim())){ if(!(i===0)) skipped++; return; }
+      pts.push(v);
+    });
+    return {pts,skipped};
+  }
+};
 
-[업무지침 기준 적용 결과] (lot 데이터, 2026-08)
-- Rc: 최대 93.7 mΩ, spec 95 초과 0건. 92.5 이상(계측 알림 대상)은 01C 39 lot(8/2 10:01~8/4 13:15; 일별 5·15·19 lot)뿐이며 8/4 13:40 PM 후 해소(PM 후 Rc 78 mΩ). 인수인계의 8/3 01C 계측 알림 4건, 8/4 03:00 Rc 93 mΩ 체크와 일치.
-- soak 편차: UCL warn(+1.5℃ 초과)은 03B 583 lot뿐(모두 8/17 이후, 8/17 이후 03B 600 lot 중). 8/17 이전 03B는 최대 +1.18℃, 나머지 8개 헤드는 전 기간 최대 +1.35℃로 기준 이내. 전체 최대 +3.28℃로 I/L(+3.5℃) 0건 → 03B가 멈추지 않고 계속 진행된 직접적 이유.
-- fail rate(헤드 일평균): 9개 헤드 × 31일 = 279 헤드·일 중 263은 2~3%(평소), 15는 5% 이상(전부 03B, 8/17~8/31 매일 6.2~6.6%), 나머지 1건은 3~5% 구간(03B 외 헤드, 최대 3.03%). 8/17 이후 헤드별 평균은 03B 6.5%, 나머지 2.3~2.6%.
-- 판정 요약: 03B는 soak 편차 UCL warn + 불량률 이상(5% 이상), 01C는 8/2~8/4 Rc 계측 알림(spec 내), 그 외 헤드는 평소 수준.
+/* ================= Store ================= */
+const DEFAULT_CFG={lot:'LOT-0001',tempLow:98.0,tempHigh:102.0,n:5,limLow:980,limHigh:1020};
+const LS='jt_poc_v1';
+const S={ cfg:{...DEFAULT_CFG}, points:[], status:'RUNNING', sub:'WAIT_MEAS', events:[], holds:[], counters:{hold:0,rel:0,out:0},
+          failSites:[], lastEval:null, report:'', gen:0 };
+const flags=()=>S.points.filter(p=>p.gen===S.gen).map(p=>p.bad);
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const now=()=>{const d=new Date();const p=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`};
+function save(){ try{ localStorage.setItem(LS,JSON.stringify({cfg:S.cfg,status:S.status,sub:S.sub,events:S.events.slice(-300),holds:S.holds.slice(-50),counters:S.counters,failSites:S.failSites})); }catch(e){} }
+function load(){ try{ const j=JSON.parse(localStorage.getItem(LS)||'null'); if(j){ Object.assign(S,{cfg:{...DEFAULT_CFG,...j.cfg},status:j.status||'RUNNING',sub:j.sub||'WAIT_MEAS',events:j.events||[],holds:j.holds||[],counters:j.counters||S.counters,failSites:j.failSites||[]}); } }catch(e){} }
+function logEvent(type,msg){ S.events.push({ts:now(),type,msg}); save(); renderLog(); }
+const curHold=()=>S.holds[S.holds.length-1];
 
-`;
-const LOGS=`[설비 이력 요약] (TEST_설비이력_202608.csv, 30건. 형식: 이력번호 | 일시 | 설비/헤드 | 구분 | 내용 | 작업자 | 결과·비고)
-001 | 8/2 00:15~04:10 | 03A | 비정기 | PnP Pick-up 진공 에러로 정지, 픽커 티칭·진공센서 필터 청소 | 이한결 | 정상 복구
-002 | 8/2 09:50 | 03B | 점검 | 주간점검 소크 온도·소켓 오염 | 최민재 | PASS
-003 | 8/4 03:00 | 01C | 점검 | Rc 체크 | 이한결 | 경계 93mΩ(spec 95), PM 8/6→8/4로 당김
-004 | 8/4 13:40~17:15 | 01C | 정기PM | 클리닝, Pick-up tip·Socket·Pogo pin kit 교체, golden unit 20ea 확인 | 최민재·박서진·한울테크 | PASS, PM 후 Rc 78mΩ
-005 | 8/4 13:55~18:10 | 01B | 정기PM | 위와 동일 | 위와 동일 | PASS
-006 | 8/5 13:00~17:10 | 02C | 정기PM | Socket·Pogo kit 교체(Pick-up tip은 재고 없어 다음 PM으로 이월) | 최민재·박서진·한울테크 | PASS
-007 | 8/6 03:50~05:20 | 02A | 알람조치 | VACUUM PRESSURE LOW, 진공 라인 피팅 재체결 | 이한결 | 정상, 재발 시 피팅 교체
-008 | 8/7 14:20 | 01B | 점검 | 히터 PID 확인(soak 안정화 시간 소폭 증가) | 박서진 | 정상, PM 직후 경향으로 판단
-009 | 8/10 04:40 | 02B | 점검 | 온도센서 offset 점검 | 박서진 | 정상
-010 | 8/11 14:10~17:25 | 03A | 정기PM | 부품 교체 | 한지우·이한결·한울테크 | PASS
-011 | 8/12 | 02A | 점검 | 진공 leak 재확인(007 후속) | 박서진·한지우 | 정상
-012 | 8/13 08:40~11:30 | 01A | 정기PM | Socket·Pogo kit 교체 | 한지우·한울테크 | PASS
-013 | 8/13 11:40~14:40 | 03B | 정기PM | Pick-up tip·Socket(8/12 입고분)·Pogo kit 교체 | 한지우·이한결·한울테크 | PASS, soak 안정화 시간 180s→210s로 평소보다 김, spec 내라 조치 안 함
-014 | 8/15 17:30~21:10 | 02A | 정기PM | 휴일 작업 | 이한결·한울테크 | PASS
-015 | 8/16 23:48~8/17 00:02 | 03B | 알람조치 | SOAK TEMP DEVIATION warn(22:31/22:57) 조치, 온도 auto calibration 실행 | 박서진 | 완료, warn 해제. lot 대기 중이라 cal 전 offset 값 백업 못함
-016 | 8/17 09:00~09:15 | 02호기 ALL(TH_A/B/C) | 변경점 | TP_B07 Rev.14→Rev.15 적용, Idd standby limit +2% 보정 | 김도윤 | 적용 완료, 첫 lot 상관 in-spec
-017 | 8/17 12:05~15:40 | 03B | 비정기 | soak 온도 UCL warn 반복 점검(Rc, 히터·칠러, 소켓 오염) | 이한결·최민재 | 이상 없음, release. 점검 후에도 설정 대비 +2℃ 동일. 파트장 보고 후 진행 결정. auto cal 전후 값 비교 필요(박서진 복귀 후)
-018 | 8/19 23:15 | 01B | 비정기 | 픽커 흡착패드 교체(마모) | 한지우 | 정상
-019 | 8/20 09:10 | 01C | 알람조치 | TEST HEAD DOCKING ERROR 1회, 커넥터 재체결 | 이한결 | 정상, 재발 없음
-020 | 8/21 09:45 | 02C | 비정기 | 포고핀 이물, IPA 클리닝, Rc 체크 | 이한결 | PASS
-021 | 8/22 08:50 | 03A | 점검 | 소크 온도 매핑 확인 | 이한결 | 정상
-022 | 8/23 15:30 | 02B | 점검 | 테스터 DPS 교정 확인 | 최민재 | 정상
-023 | 8/25 10:50 | 03C | 정기PM | 부품 교체 | 박서진·한울테크 | PASS
-024 | 8/26 01:00 | 02B | 알람조치 | DEVICE DROP ERROR, 픽커 티칭 재확인 | 최민재 | 정상
-025 | 8/27 09:45 | 03B | 점검 | 주간점검 Rc·소켓 오염 | 박서진 | PASS. soak 온도 UCL warn 계속(기존 건), cal 전 백업이 없어 비교 불가, 제조사 문의 예정
-026 | 8/28 13:20 | 01B | 점검 | Rc 체크 | 박서진·한지우 | PASS
-027 | 8/29 09:10 | 02B | 정기PM | 부품 교체 | 박서진·한지우·한울테크 | PASS
-028 | 8/30 08:40 | 02A | 비정기 | Soak plate 교체(마모 한도) | 박서진 | PASS
-029 | 8/30 09:00 | 02C | 비정기 | Soak plate 교체, Pick-up tip 교체(8/5 이월분) | 박서진 | PASS
-030 | 8/31 08:45 | 01B | 비정기 | 비전 카메라 렌즈 교체 | 박서진 | PASS
+/* ================= 핵심 동작 ================= */
+function addPoint(temp, source='sim'){
+  const bad=Rules.isBad(temp,S.cfg);
+  S.points.push({t:now(),temp,bad,source,gen:S.gen});
+  if(S.points.length>5000) S.points.shift();
+  if(S.status==='RUNNING'){
+    const cons=Rules.consecutiveBad(flags());
+    if(cons>=S.cfg.n){
+      S.status='HOLD'; S.sub='WAIT_MEAS'; S.counters.hold++;
+      const last=S.points.slice(-S.cfg.n).map(p=>p.temp);
+      S.holds.push({id:S.counters.hold,lot:S.cfg.lot,ts:now(),trigger:last,measurements:[],outcome:'OPEN'});
+      logEvent('HOLD',`${S.cfg.lot} 자동 Hold: 최근 ${S.cfg.n}타점 연속 불량 [${last.join(', ')}] (규격 ${S.cfg.tempLow}~${S.cfg.tempHigh}℃)`);
+      stopSim(); // Hold 발생 시 스트림 일시정지(엔지니어 확인)
+    }
+  }
+  renderAll();
+}
+function submitMeasurement(sites, eng){
+  if(S.status!=='HOLD') return {error:'Hold 상태가 아닙니다.'};
+  if(!sites.length||sites.some(v=>!Number.isFinite(v))) return {error:'모든 Site에 숫자를 입력하세요.'};
+  const ev=Rules.evaluateRelease(sites,S.cfg);
+  S.lastEval=ev; const h=curHold();
+  h.measurements.push({ts:now(),eng:eng||'(미입력)',sites:[...sites],pass:ev.pass});
+  if(ev.pass){ S.sub='READY'; logEvent('MEASURE',`비정규 계측(${eng||'-'}): ${sites.length}Site 모두 limit-1(${S.cfg.limLow}~${S.cfg.limHigh}) 이내 → Release 가능, 담당자 승인 대기`); }
+  else { S.sub='FAIL'; S.failSites=ev.detail.filter(d=>!d.ok).map(d=>d.site); S.counters.out++;
+    logEvent('MEASURE',`비정규 계측(${eng||'-'}): limit-1 이탈 Site ${S.failSites.join(',')} → Hold 유지`); }
+  save(); renderAll(); return {ok:true,eval:ev};
+}
+function approveRelease(approver){
+  if(S.status!=='HOLD'||S.sub!=='READY') return {error:'Release 가능 상태가 아닙니다.'};
+  if(!String(approver||'').trim()) return {error:'승인자(엔지니어) 이름을 입력하세요.'};
+  S.status='RUNNING'; S.sub='WAIT_MEAS'; S.counters.rel++; curHold().outcome='RELEASED'; curHold().approver=approver;
+  S.gen++; // Release 이후 연속 불량 카운트는 새 타점부터 시작 (차트 이력은 유지)
+  logEvent('RELEASE',`${S.cfg.lot} Release 승인 (승인자: ${approver})`); save(); renderAll(); return {ok:true};
+}
+function keepHold(){
+  if(S.status!=='HOLD'||S.sub!=='FAIL') return {error:'limit-1 이탈 상태가 아닙니다.'};
+  curHold().outcome='HOLD_CONFIRMED'; logEvent('HOLD','Hold 유지 확정 (limit-1 이탈) → Scrap/재가 절차 이관'); save(); renderAll(); return {ok:true};
+}
 
-[교대 인수인계 핵심] (TEST_교대인수인계_202608.txt. 교대: 주간 06~14 / 오후 14~22 / 야간 22~06)
-- 8/3 주간회의: 8월 정기PM 일정 공유, 월간 리뷰는 9/1. 8/3 오후 01C Rc 상승 경향 알림 4건 → 야간 Rc 93mΩ(spec 95) 확인 → PM을 8/4로 당김.
-- 8/13 오후(이한결): 03B PM 후 soak 안정화 시간이 180s→210s로 길게 나왔으나 spec 내라 조치 안 함.
-- 8/16 야간(박서진): 03B TH_B SOAK TEMP DEVIATION warn 22:31, 22:57 두 번. lot 끊기는 타이밍에 온도 auto cal(23:48~00:02), cal 후 warn 해제, cal 전 offset 값은 백업 못함. cal 이후 soak 온도가 높게 나오는 듯(B07 기준 92 근처, 원래 90 근처), UCL warn은 뜨지만 I/L은 안 걸려서 진행 중. 03B 온도 추이를 주간에 봐달라고 인계. 본인은 8/17부터 휴가(~8/24).
-- 8/17 주간(이한결): 03B 테스트 프로그램 4개 전부 설정값보다 +2℃ 높고 lot마다 UCL warn. 새벽 lot D09_02 fail 78ea(7.8%), 다른 lot도 평소보다 많음. 12:05부터 점검. 02호기 TP_B07 Rev.15는 09:00 김도윤 프로가 적용(첫 lot 상관 in-spec). 파트장에게 03B 건을 구두 보고.
-- 8/17 오후(최민재): 점검 15:40 마무리, Rc·히터·칠러·소켓 오염 정상인데 온도는 그대로 +2℃. 파트장이 "spec 내면 일단 진행하고 모니터링"이라 지시해 release. cal 전 값을 몰라 비교 불가, 박서진 복귀 후 확인 요청.
-- 8/17 야간(한지우): 03B soak 온도 UCL warn 계속, I/L 안 걸려서 진행. 02호기 Rev.15 적용 후 lot 특이사항 없음.
-- 8/18 주간(이한결): 어제 03B lot fail rate 평균 6%대(평소 2%대). 파트장에게 공유, 9/1 월간 리뷰 때 데이터를 같이 보기로. cal 전 값 확인은 박서진 복귀(8/25) 후. 8/18 오후(최민재): 03B warn 알람창이 다른 알람을 가려 확인만 누르고 진행.
-- 8/19~8/23: 03B warn 계속, 확인 누르고 진행(한지우·이한결·최민재 기록).
-- 8/24: 9/1 월간 리뷰 자료는 각 설비 담당이 준비. 오후(최민재): 03B soak warn이 일주일째인데 누가 볼지 아직 안 정해진 듯, 박서진 복귀하니 cal 건 확인 요청.
-- 8/25 박서진 복귀, 03B 건 인계 받음. 8/27 박서진: cal 전 offset 백업이 없어 비교 불가, 한울테크 통해 제조사 문의 후 회신 대기. 8/31: 제조사 회신 아직 없음, 03B soak 온도 warn 여전. 8월 설비 이력은 9/1 오전 마감.
-- 기타: 소켓 재고 부족 이슈(8/1 재고 4EA, 8/12 9EA 입고, 8/28 월말 재고 소켓 4EA·픽커 팁 2EA·포고핀 kit 3EA). 8/10 MES 점검(02:00~03:40) 중 수기 기록 12건 후 입력 완료.
+/* ================= Sim ================= */
+let timer=null, simI=0, csvQ=[], csvPos=0, mode='sim';
+function rnd(){ let u=0,v=0; while(!u)u=Math.random(); v=Math.random(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+function genPoint(sc,i,cfg){
+  const mid=(cfg.tempLow+cfg.tempHigh)/2, half=(cfg.tempHigh-cfg.tempLow)/2;
+  const ok=()=>mid+Math.max(-0.7,Math.min(0.7,rnd()*0.25))*half;
+  const bad=()=>cfg.tempHigh+half*(0.25+Math.random()*0.6);
+  if(sc==='fault') return +(i<10?ok():bad()).toFixed(2);
+  if(sc==='intermittent') return +((i%5===4)?ok():(i>=5?bad():ok())).toFixed(2);
+  return +ok().toFixed(2);
+}
+function tick(){
+  if(mode==='csv'){ if(csvPos>=csvQ.length){ stopSim(); return; } addPoint(csvQ[csvPos++],'csv'); }
+  else addPoint(genPoint($('scenario').value,simI++,S.cfg),'sim');
+}
+function startSim(m='sim'){ stopSim(); mode=m; if(m==='sim') simI=0; if(S.status==='HOLD'){ $('csvInfo').textContent='Hold 상태에서는 스트림을 시작할 수 없습니다. Release 후 재개하세요.'; return; }
+  timer=setInterval(tick,+$('speed').value); $('btnStart').disabled=true; $('btnStop').disabled=false; }
+function stopSim(){ if(timer){clearInterval(timer);timer=null;} $('btnStart').disabled=false; $('btnStop').disabled=true; }
 
-[8/17 이후 불량률 상승 원인 분석]
-- 가장 유력한 원인: 8/16 23:48~00:02 03B auto calibration 이후 soak 온도 offset이 어긋나 실제 soak 온도가 설정 대비 약 +2℃ 높아짐. 근거 ① cal 종료 00:02, 데이터상 이상이 보이는 첫 lot은 00:09, 그 직전까지 TH_B 정상 ② 설정 85/90/105/125℃ 제품 모두 편차가 약 +2℃로 같아 비례 오차가 아니라 상수 offset 형태 ③ 8/17·8/27 점검에서 Rc, 히터·칠러, 소켓 오염 모두 정상이었는데 +2℃ 유지 → 하드웨어보다 제어 설정값 문제 ④ 불량이 같은 시점에 2.4%→6.5%로 늘어 실제 소자 온도도 높은 것으로 해석.
-- 보조 가설(약함): 8/13 PM 후 안정화 시간 증가(180s→210s)와 8/16 warn으로 이미 열 경로 변화가 있었고, 그 상태에서 cal이 어긋났을 가능성. 정황뿐이며 같은 소켓을 쓴 다른 헤드(PM 후 01B·01C·03A)는 문제가 없어 근거가 약함.
-- 원인에서 제외: PROD_B07 Rev.15(TEST_02에 적용된 별건이며 불량은 03B 4개 프로그램 전부에서 00:09부터 발생), 진공/PnP/도킹 알람, MES 점검, Rc·소켓 오염·히터·칠러(점검 정상).
-- 확정 불가 사유: cal 전 offset 값이 없어 어긋난 폭을 증명할 수 없고 제조사 회신도 없음. 업무지침상 cal을 실행하면 기존 offset 값이 덮어써지므로 실행 전에 백업하지 않으면 복원할 수 없음. 또 8/16 22시 warn은 lot 데이터(03B의 8/17 이전 편차 최대 +1.18℃)에서는 확인되지 않음. 위 내용은 간접 증거에 근거한 추정임.
-- 2주간 방치된 이유: 알람이 UCL warn 수준이고 I/L이 안 걸려 spec 내로 보고 계속 가동, warn은 매일 뜨지만 확인만 누르고 진행, cal 실행자 휴가(~8/24) 동안 담당자 미지정, 비교 기준(cal 전 값) 없음, 데이터 검토는 9/1 월간 리뷰로 계획.
-- 영향 규모(추정): 8/17 이후 03B 600 lot(lot당 1,000개), 평균 불량률 2.4%→6.5%, 정상 수준 대비 추가 불량 약 2.5만 개(약 4.1%p × 600,000개). 실제 불량인지 과검인지는 데이터로 구분 불가.
-- 사람의 책임 관련 정리: 기록으로 확인되는 것은 박서진이 cal을 실행했고 cal 후 높은 온도를 인지해 인계에 남겼으며, 이후 파트장이 "spec 내면 진행·모니터링"으로 결정했고 모든 교대조가 같은 방식(warn 확인 후 진행)으로 대응했다는 점이다. 그러나 cal은 이미 떠 있던 warn에 대한 정상적 조치였고, 백업이 절차상 의무였는지, I/L·spec 기준을 누가 정했는지는 기록에 없으며, 원인 자체가 추정이다. 따라서 특정인의 과실로 단정할 수 없고, 백업 절차 부재, warn만 있고 I/L이 없는 구조, 담당자 미지정, 불량률 급등 시 중단 기준 부재 같은 구조적 요인이 기록과 더 잘 맞는다.
-- Rev.15 별건 설명: 8/17 09:00 TEST_02 TH_A/B/C 전체에 김도윤 프로가 TP_B07 Rev.14→15를 적용한 계획된 변경(Idd standby limit +2% 보정 포함)이며 03B 불량과는 무관.`;
-function buildContext(){
- const rows=D.days.map((d,i)=>`${d} | ${D.dT_bad[i]} | ${D.dT_oth[i]} | ${D.fr_bad[i]} | ${D.fr_oth[i]} | ${D.r14[i]} | ${D.r15[i]} | ${D.cr[i]}`).join('\n');
- const bars=D.bars.map(b=>`TEST_${b.k.slice(0,2)}/TH_${b.k.slice(-1)}: ${b.v}%`).join(', ');
- return GUIDE+'\n\n'+FACTS+'\n\n'+LOGS+`\n\n[일별 데이터] (불량 조합=TEST_03/TH_B, 기타=나머지 8개 조합)\n날짜 | 온도편차(℃) 불량조합 | 온도편차 기타 | 불량률(%) 불량조합 | 불량률 기타 | B07 R14 lot수 | B07 R15 lot수 | 접촉저항 전체평균(mΩ)\n${rows}\n\n[8/17 이후 장비·헤드별 평균 불량률] ${bars}`}
-const SYS=`당신은 FAB 테스트 Lot 데이터 대시보드의 분석 도우미입니다. 반드시 아래 [대시보드 데이터](업무지침, 수치, 보고서 결론, 설비 이력, 교대 인수인계, 원인 분석 포함)만 근거로 한국어로 간결하게 답하세요.
-규칙: 1) 데이터에 없는 내용(개별 lot 단위 값, 원인 확정, 다른 기간 등)은 추측하지 말고 "이 대시보드 데이터로는 알 수 없습니다"라고 답하세요. 2) 수치를 말할 때는 어떤 항목/날짜의 값인지 함께 밝히세요. 3) 원인은 가능성으로만 말하고 확정하지 마세요. 4) 대시보드와 무관한 질문은 정중히 범위를 안내하세요. 5) 특정인의 잘못이나 책임을 묻는 질문에는 기록에 나타난 각자의 행동과 판단 시점만 사실대로 설명하고, 과실이 있다고 단정하지 마세요. 단정할 수 없는 이유(원인이 추정이라는 점, 절차·기준이 기록에 없다는 점)와 구조적 요인을 함께 설명하세요. 6) 설비 이력이나 인수인계를 근거로 들 때는 이력번호(예: EH-2608-015)나 날짜·교대를 함께 밝히세요. 7) 용어는 [업무지침]의 정의대로 쓰세요(예: UCL warn은 설비가 계속 진행하는 경고, I/L은 설비가 멈추는 인터락). 호기와 헤드는 현장 표기(01호기, 01A, 03B)로 말하고, 처음 언급할 때만 TEST_03 / TH_B처럼 병기하세요. 8) 정상·주의·이상 같은 상태 판정은 [업무지침]의 판단 기준(Rc, soak 편차, fail rate)에 따라서만 하고, 기준에 정의되지 않은 구간은 판정하지 말고 "업무지침에 기준이 없다"고 말하세요. 판정할 때는 어떤 기준(예: UCL warn +1.5℃ 초과)을 몇 건·얼마나 넘었는지 수치로 밝히세요. 9) 야간조 기록의 날짜는 교대 시작일 기준이고 시각은 실제 날짜입니다. 시각을 말할 때 이 규칙으로 해석하세요.
+/* ================= 렌더링 ================= */
+function renderBanner(){
+  const b=$('banner'), cons=Rules.consecutiveBad(flags()), N=S.cfg.n;
+  let cls,icon,msg,sub;
+  if(S.status==='HOLD'){
+    if(S.sub==='READY'){cls='ready';icon='✔';msg='계측 정상 — Release 승인 대기';sub='모든 Site가 limit-1 이내입니다. 담당자 승인 후 Release 됩니다. (계측·Release 탭)';}
+    else if(S.sub==='FAIL'){cls='hold';icon='⛔';msg='HOLD 유지 — limit-1 이탈';sub=`이탈 Site: ${S.failSites.join(', ')} · 재계측 또는 Hold 유지 확정`;}
+    else {cls='hold';icon='⛔';msg='HOLD — 엔지니어 비정규 계측 필요';sub=`${S.cfg.lot}: 최근 ${N}타점 연속 Temp 불량으로 자동 Hold (계측·Release 탭에서 Site 두께 입력)`;}
+  } else if(cons>0){cls='warn';icon='▲';msg=`주의 — 연속 불량 ${cons}/${N}`;sub=`${N}타점 연속 불량 시 자동 Hold 됩니다.`;}
+  else {cls='running';icon='●';msg='정상 가동 중 (RUNNING)';sub=`${S.cfg.lot} · Temp 규격 ${S.cfg.tempLow}~${S.cfg.tempHigh}℃`;}
+  b.className=cls; $('bIcon').textContent=icon; $('bMsg').textContent=msg; $('bSub').textContent=sub;
+  $('bDots').textContent=Array.from({length:N},(_,i)=>i<Math.min(cons,N)?'●':'○').join('');
+  b.dataset.state=S.status==='HOLD'?(S.sub==='READY'?'READY':'HOLD'):(cons>0?'WARN':'RUNNING');
+}
+function renderKpi(){
+  const cons=Rules.consecutiveBad(flags()), last=S.points[S.points.length-1];
+  $('kTemp').textContent=last?last.temp.toFixed(2)+' ℃':'–'; $('kTemp').className=last&&last.bad?'bad':'';
+  $('kCons').textContent=`${cons} / ${S.cfg.n}`; $('kCons').className=cons>0?'bad':'';
+  $('kState').textContent=S.status==='HOLD'?(S.sub==='READY'?'HOLD (승인대기)':'HOLD'):'RUNNING'; $('kState').className=S.status==='HOLD'?'bad':'good';
+  $('kCount').textContent=S.points.length; $('kHold').textContent=S.counters.hold; $('kRel').textContent=S.counters.rel; $('kOut').textContent=S.counters.out;
+  $('ptBody').innerHTML=S.points.slice(-8).reverse().map((p,i)=>`<tr><td>${S.points.length-i}</td><td>${esc(p.t)}</td><td class="${p.bad?'bad':''}">${p.temp.toFixed(2)}</td><td>${p.bad?'<span class="tag hold">불량</span>':'<span class="tag ok">정상</span>'}</td></tr>`).join('');
+}
+function renderChart(){
+  const cv=$('chart'), dpr=window.devicePixelRatio||1, W=cv.clientWidth||600, H=cv.clientHeight||320;
+  cv.width=W*dpr; cv.height=H*dpr; const g=cv.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,W,H);
+  const cs=getComputedStyle(document.documentElement), col=n=>cs.getPropertyValue(n).trim();
+  const pts=S.points.slice(-120), L=44,R=10,T=10,B=22, w=W-L-R, h=H-T-B;
+  const span=S.cfg.tempHigh-S.cfg.tempLow; let lo=S.cfg.tempLow-span*.6, hi=S.cfg.tempHigh+span*.6;
+  pts.forEach(p=>{ if(p.temp<lo)lo=p.temp-.2; if(p.temp>hi)hi=p.temp+.2; });
+  const X=i=>L+(pts.length<2?w/2:i*w/(119)), Y=v=>T+h-(v-lo)/(hi-lo)*h;
+  g.font='11px sans-serif'; g.fillStyle=col('--muted'); g.strokeStyle=col('--line'); g.lineWidth=1;
+  for(let k=0;k<=4;k++){ const v=lo+(hi-lo)*k/4, y=Y(v); g.beginPath(); g.moveTo(L,y); g.lineTo(W-R,y); g.stroke(); g.fillText(v.toFixed(1),4,y+4); }
+  g.setLineDash([6,4]); g.strokeStyle=col('--info'); g.lineWidth=1.5;
+  [S.cfg.tempLow,S.cfg.tempHigh].forEach(v=>{ g.beginPath(); g.moveTo(L,Y(v)); g.lineTo(W-R,Y(v)); g.stroke(); }); g.setLineDash([]);
+  g.fillStyle=col('--info'); g.fillText('USL '+S.cfg.tempHigh,L+4,Y(S.cfg.tempHigh)-4); g.fillText('LSL '+S.cfg.tempLow,L+4,Y(S.cfg.tempLow)+12);
+  if(pts.length){ const n=Math.min(S.cfg.n,pts.length); g.fillStyle=col('--shade'); g.fillRect(X(pts.length-n)-4,T,X(pts.length-1)-X(pts.length-n)+8,h); }
+  g.strokeStyle=col('--primary'); g.lineWidth=2; g.beginPath(); pts.forEach((p,i)=>{ i?g.lineTo(X(i),Y(p.temp)):g.moveTo(X(i),Y(p.temp)); }); g.stroke();
+  pts.forEach((p,i)=>{ if(p.bad){ g.fillStyle=col('--hold'); g.beginPath(); g.arc(X(i),Y(p.temp),5,0,7); g.fill(); } });
+  cv.dataset.points=pts.length; cv.dataset.bad=pts.filter(p=>p.bad).length;
+}
+function renderMeasure(){
+  const hold=S.status==='HOLD', can=hold&&S.sub!=='READY';
+  $('measureGuide').textContent=hold?(S.sub==='READY'?'계측 정상 판정 — 아래에서 Release를 승인하세요.':'Site별 Gpoly 두께(Å)를 입력하고 제출하세요.'):'Hold 상태에서만 입력할 수 있습니다.';
+  $('limitView').innerHTML=`<b>${S.cfg.limLow} ~ ${S.cfg.limHigh}</b>`;
+  $('btnSubmitMeas').disabled=!can; $('btnRelease').disabled=!(hold&&S.sub==='READY'); $('btnKeepHold').disabled=!(hold&&S.sub==='FAIL');
+  document.querySelectorAll('#sites input').forEach(i=>i.disabled=!can);
+  const r=$('measResult');
+  if(S.lastEval&&hold){ const ev=S.lastEval;
+    r.innerHTML=`<div class="result ${ev.pass?'pass':'fail'}" data-testid="evalResult"><b>${ev.pass?'PASS — Release 가능':'FAIL — Hold 유지'}</b><br>`+ev.detail.map(d=>`Site ${d.site}: <span class="${d.ok?'':'bad'}" style="${d.ok?'':'color:var(--hold);font-weight:700'}">${d.value}</span> ${d.ok?'✔':'✖ 이탈'}`).join(' · ')+'</div>';
+  } else if(!hold) r.innerHTML='';
+}
+function renderLog(){
+  $('logBody').innerHTML=S.events.slice().reverse().map(e=>`<tr><td>${esc(e.ts)}</td><td><span class="tag ${e.type==='HOLD'?'hold':e.type==='RELEASE'?'ok':e.type==='MEASURE'?'warn':'info'}">${esc(e.type)}</span></td><td>${esc(e.msg)}</td></tr>`).join('')||'<tr><td colspan="3" class="note">이력이 없습니다.</td></tr>';
+}
+function renderAll(){ renderBanner(); renderKpi(); renderChart(); renderMeasure(); updateAiBtn(); }
+function fillCfg(){ const c=S.cfg; $('cLot').value=c.lot; $('cTL').value=c.tempLow; $('cTH').value=c.tempHigh; $('cN').value=c.n; $('cLL').value=c.limLow; $('cLH').value=c.limHigh; }
 
-[대시보드 데이터]
-${buildContext()}`;
-const MAXTOK=8192;
-const $=id=>document.getElementById(id),msgs=$('msgs');let hist=[],busy=false;
-try{$('cm').value=localStorage.getItem('chat_model')||'';$('cu').value=localStorage.getItem('chat_url')||''}catch(e){}
-function add(cls,t){const el=document.createElement('div');el.className='m '+cls;el.textContent=t;msgs.appendChild(el);msgs.scrollTop=msgs.scrollHeight;return el}
-add('a','안녕하세요! 대시보드 데이터에 대해 궁금한 점을 물어보세요. 먼저 위 "모델 설정"에 model_name, base_url, api_key를 입력해 주세요.');
-['8/17 이후 불량률이 오른 원인이 뭔가요?','8/16 밤에 03B에서 무슨 일이 있었나요?','누가 잘못한 건가요?','PROD_B07의 R15는 왜 도입됐나요?','접촉저항은 정상인가요?'].forEach(q=>{const b=document.createElement('button');b.type='button';b.textContent=q;b.onclick=()=>{$('ci').value=q;send()};$('chips').appendChild(b)});
-function endpoint(u){u=u.trim().replace(/\/+$/,'');return /\/chat\/completions$/.test(u)?u:u+'/chat/completions'}
-async function send(){
- if(busy)return;const q=$('ci').value.trim();if(!q)return;
- const model=$('cm').value.trim(),url=$('cu').value.trim(),key=$('ck').value.trim();
- if(!model||!url||!key){$('cfg').open=true;add('e','model_name, base_url, api_key를 모두 입력해 주세요.');return}
- try{localStorage.setItem('chat_model',model);localStorage.setItem('chat_url',url)}catch(e){}
- $('ci').value='';add('u',q);hist.push({role:'user',content:q});
- busy=true;$('cs').disabled=true;const w=add('a','답변 생성 중…');
- try{
-  const call=async tokKey=>{const r=await fetch(endpoint(url),{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model,stream:true,[tokKey]:MAXTOK,messages:[{role:'system',content:SYS},...hist.slice(-12)]})});
-   if(r.ok)return{r};const txt=await r.text();let j;try{j=JSON.parse(txt)}catch(e){}return{r,msg:(j&&(j.error&&j.error.message||j.message))||txt.slice(0,200)}};
-  let R=await call('max_tokens');
-  if(!R.r.ok&&/max_completion_tokens/.test(R.msg))R=await call('max_completion_tokens');
-  if(!R.r.ok)throw new Error('HTTP '+R.r.status+' · '+R.msg);
-  let a='',fin='';const ct=R.r.headers.get('content-type')||'';
-  if(/json/.test(ct)&&!/event-stream/.test(ct)){const j=await R.r.json(),ch=j.choices&&j.choices[0];a=(ch&&ch.message&&ch.message.content)||'';fin=ch&&ch.finish_reason}
-  else{const rd=R.r.body.getReader(),dec=new TextDecoder();let buf='';w.textContent='';
-   for(;;){const {done,value}=await rd.read();if(done)break;buf+=dec.decode(value,{stream:true});let nl;
-    while((nl=buf.indexOf('\n'))>=0){const line=buf.slice(0,nl).trim();buf=buf.slice(nl+1);if(!line.startsWith('data:'))continue;const p=line.slice(5).trim();if(p==='[DONE]')continue;
-     try{const j=JSON.parse(p);if(j.error)throw new Error(j.error.message||'스트림 오류');const ch=j.choices&&j.choices[0];if(ch){const t=ch.delta&&ch.delta.content;if(t){a+=t;w.textContent=a;msgs.scrollTop=msgs.scrollHeight}if(ch.finish_reason)fin=ch.finish_reason}}catch(e){if(!(e instanceof SyntaxError))throw e}}}}
-  if(!a)throw new Error(fin==='length'?'모델이 답변을 만들기 전에 출력 한도에 도달했습니다. 추론형 모델은 한도를 많이 사용하므로 MAXTOK 값을 늘려 주세요.':'빈 응답을 받았습니다.');
-  w.textContent=a+(fin==='length'?'\n\n(출력 한도에 도달해 답변이 중간에 끊겼습니다.)':'');hist.push({role:'assistant',content:a});
- }catch(err){hist.pop();w.className='m e';w.textContent=(err instanceof TypeError?'요청에 실패했습니다. base_url, 네트워크 또는 서버의 CORS 허용 여부를 확인해 주세요.':'오류: '+err.message)}
- busy=false;$('cs').disabled=false;msgs.scrollTop=msgs.scrollHeight;$('ci').focus()}
-$('cf').addEventListener('submit',e=>{e.preventDefault();send()});
-$('ci').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();send()}});
-const root=document.documentElement;document.getElementById('theme').onclick=()=>{const dark=getComputedStyle(root).getPropertyValue('--bg').trim().toUpperCase()==='#0F141A';root.dataset.theme=dark?'light':'dark'};
-</script></body></html>
+/* ================= 계측 입력 UI ================= */
+function buildSites(n=5){ const box=$('sites'); const cur=[...box.querySelectorAll('input')].map(i=>i.value);
+  box.innerHTML=''; for(let i=0;i<n;i++){ const d=document.createElement('div'); d.className='row'; d.innerHTML=`<div style="max-width:240px"><label>Site ${i+1} 두께 (Å)</label><input type="number" step="0.1" data-site="${i+1}"></div>`; box.appendChild(d); d.querySelector('input').value=cur[i]||''; } renderMeasure(); }
+
+/* ================= AI ================= */
+const AI={
+  system:'당신은 반도체 파운드리 선행공정 품질 분석가입니다. 사실만 근거로 간결하게 작성합니다.',
+  payload(extra){
+    const pts=S.points.slice(-60).map(p=>({t:p.t,temp:p.temp,bad:p.bad}));
+    const temps=S.points.map(p=>p.temp).filter(Number.isFinite);
+    const stats=temps.length?{count:temps.length,min:Math.min(...temps),max:Math.max(...temps),mean:+(temps.reduce((a,b)=>a+b,0)/temps.length).toFixed(3),badCount:S.points.filter(p=>p.bad).length}:{count:0};
+    return {config:S.cfg,status:S.status+(S.status==='HOLD'?'/'+S.sub:''),stats,recentPoints:pts,holds:S.holds.slice(-5),events:S.events.slice(-20),counters:S.counters};
+  },
+  prompt(extra){
+    return `[역할] 당신은 파운드리 선행공정(S3 diffusion Gate Poly) 품질 분석가입니다.
+[맥락] Cold Junction Temp 최근 ${S.cfg.n}타점 연속 불량 시 자동 Hold, 엔지니어 비정규 계측 후 Site 기준 limit-1(${S.cfg.limLow}~${S.cfg.limHigh}Å) 이탈 없으면 Release, 이탈 시 Hold 유지하는 PoC입니다. Junction Temp 불량은 Gpoly 두께 이상 및 Auto 이상 발의로 이어질 수 있고(6개월 3건), 현재 Wafer Loss는 27매/6개월(목표 0매)입니다.
+[과업] 아래 JSON 데이터를 분석해 현업이 바로 열람할 단일 HTML 리포트를 작성하세요. 구성 순서: ① 요약 3줄 ② 핵심 지표 카드 ③ 차트(인라인 SVG, 온도 추이와 규격선) ④ 상세 표(Hold 이벤트·계측값) ⑤ 권고 조치와 확인란(체크박스, 담당자 확인).
+[제약] 추정 금지: JSON에 없는 수치·원인은 쓰지 말고 "데이터 없음"으로 표기. 모든 주장에 근거 수치를 명시. 최종 Release/Scrap 판정은 담당자 몫이며 AI는 권고만 한다고 명시.
+[출력형식] <!doctype html>로 시작하는 완전한 단일 HTML 문서, 인라인 CSS만 사용, 외부 리소스·JavaScript 금지. HTML 외 다른 텍스트·마크다운 코드펜스 금지.
+${extra?`[추가 지시] ${extra}\n`:''}[데이터]
+${JSON.stringify(AI.payload(),null,1)}`;
+  },
+  async call({key,model,messages,max_tokens,system}){
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model,max_tokens,temperature:1,system,messages})});
+    let data=null; try{data=await res.json();}catch(e){}
+    if(!res.ok) throw new Error((data&&data.error&&data.error.message)||('HTTP '+res.status));
+    return (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+  },
+  clean(t){ t=t.trim().replace(/^```(?:html)?\s*/i,'').replace(/```\s*$/,''); const i=t.search(/<!doctype html|<html/i); return i>0?t.slice(i):t; }
+};
+const keyOk=()=>$('apiKey').value.trim().length>0;
+function updateAiBtn(){ $('btnGenReport').disabled=!keyOk(); }
+
+/* ================= 이벤트 바인딩 ================= */
+function init(){
+  load(); fillCfg(); buildSites(5); renderLog(); renderAll();
+  $('tabs').addEventListener('click',e=>{ const t=e.target.dataset.tab; if(!t) return;
+    document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b===e.target));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('on',p.id==='p-'+t)); if(t==='monitor') renderChart(); });
+  $('btnStart').onclick=()=>startSim('sim'); $('btnStop').onclick=stopSim;
+  $('btnReset').onclick=()=>{ stopSim(); S.points=[]; renderAll(); };
+  $('btnInjBad').onclick=()=>addPoint(+(S.cfg.tempHigh+(S.cfg.tempHigh-S.cfg.tempLow)*0.5).toFixed(2),'manual');
+  $('btnInjOk').onclick=()=>addPoint(+((S.cfg.tempLow+S.cfg.tempHigh)/2).toFixed(2),'manual');
+  $('csvFile').onchange=async e=>{ const f=e.target.files[0]; if(!f) return; const r=Rules.parseCsv(await f.text()); csvQ=r.pts; csvPos=0;
+    $('csvInfo').textContent=r.pts.length?`CSV ${r.pts.length}타점 로드, 무시된 행 ${r.skipped}건`:`유효한 데이터가 없습니다. (무시된 행 ${r.skipped}건)`;
+    $('btnCsvPlay').disabled=$('btnCsvBatch').disabled=!r.pts.length; };
+  $('btnCsvPlay').onclick=()=>{ csvPos=0; startSim('csv'); };
+  $('btnCsvBatch').onclick=()=>{ stopSim(); csvPos=0; while(csvPos<csvQ.length && S.status!=='HOLD') addPoint(csvQ[csvPos++],'csv');
+    $('csvInfo').textContent=`일괄 분석: ${csvPos}/${csvQ.length}타점 처리${S.status==='HOLD'?' — Hold 발생으로 중단':''}`; };
+  $('btnAddSite').onclick=()=>buildSites(Math.min(20,$('sites').children.length+1));
+  $('btnDelSite').onclick=()=>buildSites(Math.max(1,$('sites').children.length-1));
+  $('btnSubmitMeas').onclick=()=>{ const vals=[...document.querySelectorAll('#sites input')].map(i=>i.value.trim()===''?NaN:Number(i.value));
+    const r=submitMeasurement(vals,$('engName').value.trim()); $('measErr').textContent=r.error||''; };
+  $('btnRelease').onclick=()=>{ const r=approveRelease($('engName').value); $('measErr').textContent=r.error||''; if(r.ok){ S.lastEval=null; document.querySelectorAll('#sites input').forEach(i=>i.value=''); renderAll(); } };
+  $('btnKeepHold').onclick=()=>{ const r=keepHold(); $('measErr').textContent=r.error||''; };
+  $('btnSaveCfg').onclick=()=>{ const c={lot:$('cLot').value.trim(),tempLow:parseFloat($('cTL').value),tempHigh:parseFloat($('cTH').value),n:Number($('cN').value),limLow:parseFloat($('cLL').value),limHigh:parseFloat($('cLH').value)};
+    const er=Rules.validateCfg(c); $('cfgErr').textContent=er.join(' '); if(er.length) return; S.cfg=c; logEvent('CONFIG',`설정 변경: Temp ${c.tempLow}~${c.tempHigh}℃, N=${c.n}, limit-1 ${c.limLow}~${c.limHigh}Å, LOT ${c.lot}`); save(); renderAll(); };
+  $('btnFactory').onclick=()=>{ if(!confirm('모든 설정과 이력을 초기화할까요?')) return; stopSim(); try{localStorage.removeItem(LS);}catch(e){}
+    Object.assign(S,{cfg:{...DEFAULT_CFG},points:[],status:'RUNNING',sub:'WAIT_MEAS',events:[],holds:[],counters:{hold:0,rel:0,out:0},failSites:[],lastEval:null}); fillCfg(); renderLog(); renderAll(); };
+  $('btnLogCsv').onclick=()=>{ const rows=[['시각','구분','내용'],...S.events.map(e=>[e.ts,e.type,e.msg])].map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\r\n');
+    const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['﻿'+rows],{type:'text/csv;charset=utf-8'})); a.download=`junction_temp_log_${Date.now()}.csv`; a.click(); };
+  $('btnLogClear').onclick=()=>{ S.events=[]; save(); renderLog(); };
+  $('apiKey').oninput=updateAiBtn;
+  $('btnShowPrompt').onclick=()=>{ $('promptView').textContent=AI.prompt($('extraPrompt').value.trim()); $('promptBox').open=true; };
+  $('btnTestAi').onclick=async()=>{ if(!keyOk()){ $('aiStatus').textContent='API Key를 입력하세요.'; return; } $('aiStatus').textContent='연결 확인 중…';
+    try{ const t=await AI.call({key:$('apiKey').value.trim(),model:$('modelId').value.trim(),max_tokens:16,messages:[{role:'user',content:'ping'}]}); $('aiStatus').textContent='✔ 연결 성공 (응답: '+t.slice(0,30)+')'; }
+    catch(e){ $('aiStatus').textContent='✖ 연결 실패: '+e.message; } };
+  $('btnGenReport').onclick=async()=>{ $('aiErr').textContent=''; const btn=$('btnGenReport'); btn.disabled=true; btn.textContent='생성 중…';
+    try{ const html=AI.clean(await AI.call({key:$('apiKey').value.trim(),model:$('modelId').value.trim(),max_tokens:16000,system:AI.system,messages:[{role:'user',content:AI.prompt($('extraPrompt').value.trim())}]}));
+      if(!html) throw new Error('빈 응답입니다.'); S.report=html; $('reportFrame').srcdoc=html; $('btnDlReport').disabled=false; logEvent('AI','AI 리포트 생성 ('+$('modelId').value.trim()+')'); }
+    catch(e){ $('aiErr').textContent='리포트 생성 실패: '+e.message; }
+    btn.textContent='리포트 생성'; updateAiBtn(); };
+  $('btnDlReport').onclick=()=>{ if(!S.report) return; if(!confirm('AI가 생성한 HTML입니다. 내용을 확인한 뒤 열람하세요. 다운로드할까요?')) return;
+    const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([S.report],{type:'text/html;charset=utf-8'})); a.download=`junction_temp_report_${Date.now()}.html`; a.click(); };
+  window.addEventListener('resize',renderChart);
+}
+window.App={Rules,S,addPoint,submitMeasurement,approveRelease,keepHold,AI};
+init();
+</script>
+</body>
+</html>
